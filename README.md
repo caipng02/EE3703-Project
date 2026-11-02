@@ -74,6 +74,11 @@ of predictions with boxes, labels, and confidence scores. Append its recording
 after the three-minute inference segment; the GUI segment is outside that time
 limit. The GUI can earn up to 2% bonus, with the demo/code score capped at 10%.
 
+The browser interface is in [`gui/`](gui/README.md), with upload, detector
+selection and annotated results displayed on the page. See its README for startup and
+instructions for connecting each trained detector. The model adapters are
+disabled until the group's inference code and weights are available.
+
 ### 4. In-Class Presentation
 
 Deliver a **12-minute group presentation followed by 5 minutes of Q&A**.
