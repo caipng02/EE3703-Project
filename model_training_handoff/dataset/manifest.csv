@@ -1,0 +1,501 @@
+file_name,split,origin,source,source_file,capture_group,native_size,note,scene,drill,scissor,screwdriver
+orig_001.jpg,train,original,set1,photo_1_2026-10-31_00-04-54.jpg,S1-01,960x1280,,multi_class,1,2,2
+orig_002.jpg,train,original,set1,photo_3_2026-10-31_00-04-54.jpg,S1-02,960x1280,,multi_class,1,1,2
+orig_003.jpg,train,original,set1,photo_4_2026-10-31_00-04-54.jpg,S1-03,960x1280,,multi_class,1,2,2
+orig_004.jpg,train,original,set1,photo_6_2026-10-31_00-04-54.jpg,S1-04,960x1280,,multi_class,1,1,2
+orig_005.jpg,train,original,set1,photo_8_2026-10-31_00-04-54.jpg,S1-04,960x1280,,multi_class,1,1,2
+orig_006.jpg,train,original,set1,photo_11_2026-10-31_00-04-54.jpg,S1-05,960x1280,,multi_class,1,1,1
+orig_007.jpg,train,original,set1,photo_12_2026-10-31_00-04-54.jpg,S1-06,960x1280,,multi_class,1,0,2
+orig_008.jpg,test,original,set1,photo_14_2026-10-31_00-04-54.jpg,S1-07,960x1280,,multi_class,0,1,2
+orig_009.jpg,test,original,set1,photo_17_2026-10-31_00-04-54.jpg,S1-08,960x1280,,multi_class,0,1,2
+orig_010.jpg,test,original,set1,photo_20_2026-10-31_00-04-55.jpg,S1-09,960x1280,,multi_class,0,1,1
+orig_011.jpg,test,original,set1,photo_22_2026-10-31_00-04-55.jpg,S1-10,960x1280,,multi_class,0,1,1
+orig_012.jpg,test,original,set1,photo_26_2026-10-31_00-04-55.jpg,S1-11,960x1280,,multi_class,0,1,1
+orig_013.jpg,test,original,set1,photo_27_2026-10-31_00-04-55.jpg,S1-12,960x1280,,single_class,0,0,2
+orig_014.jpg,test,original,set1,photo_28_2026-10-31_00-04-55.jpg,S1-13,960x1280,,single_class,0,1,0
+orig_015.jpg,test,original,set1,photo_31_2026-10-31_00-04-55.jpg,S1-14,960x1280,,single_class,0,0,1
+orig_016.jpg,valid,original,set1,photo_25_2026-10-31_00-04-55.jpg,S1-15,960x1280,,multi_class,1,2,2
+orig_017.jpg,train,original,set1,photo_34_2026-10-31_00-04-55.jpg,S1-16,960x1280,,multi_class,1,2,2
+orig_018.jpg,train,original,set1,photo_35_2026-10-31_00-04-55.jpg,S1-17,960x1280,,single_class,0,1,0
+orig_019.jpg,train,original,set1,photo_37_2026-10-31_00-04-55.jpg,S1-17,960x1280,,single_class,0,1,0
+orig_020.jpg,train,original,set1,photo_38_2026-10-31_00-04-55.jpg,S1-18,960x1280,,multi_class,1,2,1
+orig_021.jpg,train,original,set1,photo_39_2026-10-31_00-04-55.jpg,S1-18,960x1280,,multi_class,1,2,2
+orig_022.jpg,train,original,set1,photo_42_2026-10-31_00-04-55.jpg,S1-19,960x1280,,multi_class,0,2,1
+orig_023.jpg,train,original,set1,photo_45_2026-10-31_00-04-55.jpg,S1-20,960x1280,,single_class,0,0,1
+orig_024.jpg,train,original,set1,photo_46_2026-10-31_00-04-55.jpg,S1-20,960x1280,,single_class,0,0,1
+orig_025.jpg,train,original,set1,photo_47_2026-10-31_00-04-55.jpg,S1-21,960x1280,,multi_class,0,2,2
+orig_026.jpg,valid,original,set1,photo_51_2026-10-31_00-04-55.jpg,S1-22,960x1280,,multi_class,1,2,2
+orig_027.jpg,train,original,set1,photo_55_2026-10-31_00-04-55.jpg,S1-23,960x1280,,multi_class,1,2,1
+orig_028.jpg,train,original,set1,photo_56_2026-10-31_00-04-55.jpg,S1-23,960x1280,,multi_class,1,2,1
+orig_029.jpg,valid,original,set1,photo_60_2026-10-31_00-04-55.jpg,S1-24,960x1280,,multi_class,1,2,1
+orig_030.jpg,test,original,set1,photo_62_2026-10-31_00-04-55.jpg,S1-25,960x1280,,multi_class,1,2,1
+orig_031.jpg,test,original,set1,photo_64_2026-10-31_00-04-55.jpg,S1-26,960x1280,,multi_class,1,2,1
+orig_032.jpg,test,original,set1,photo_67_2026-10-31_00-04-55.jpg,S1-27,960x1280,,multi_class,1,1,0
+orig_033.jpg,test,original,set1,photo_69_2026-10-31_00-04-55.jpg,S1-28,960x1280,,multi_class,1,1,0
+orig_034.jpg,test,original,set1,photo_71_2026-10-31_00-04-55.jpg,S1-29,960x1280,,multi_class,1,1,1
+orig_035.jpg,test,original,set1,photo_74_2026-10-31_00-04-55.jpg,S1-30,960x1280,,multi_class,0,1,1
+orig_036.jpg,test,original,set1,photo_78_2026-10-31_00-04-55.jpg,S1-31,960x1280,,single_class,0,1,0
+orig_037.jpg,test,original,set1,photo_79_2026-10-31_00-04-55.jpg,S1-32,960x1280,,single_class,0,1,0
+orig_038.jpg,test,original,set1,photo_80_2026-10-31_00-04-55.jpg,S1-33,960x1280,,single_class,0,0,1
+orig_039.jpg,test,original,set1,photo_81_2026-10-31_00-04-55.jpg,S1-34,960x1280,,single_class,0,1,0
+orig_040.jpg,train,original,set1,photo_84_2026-10-31_00-04-55.jpg,S1-35,960x1280,,multi_class,1,0,1
+orig_041.jpg,test,original,set1,photo_85_2026-10-31_00-04-55.jpg,S1-36,960x1280,,single_class,1,0,0
+orig_042.jpg,test,original,set1,photo_86_2026-10-31_00-04-55.jpg,S1-36,960x1280,,single_class,1,0,0
+orig_043.jpg,test,original,set1,photo_87_2026-10-31_00-04-55.jpg,S1-37,960x1280,,single_class,1,0,0
+orig_044.jpg,test,original,set1,photo_88_2026-10-31_00-04-55.jpg,S1-38,960x1280,,single_class,1,0,0
+orig_045.jpg,valid,original,set1,photo_89_2026-10-31_00-04-55.jpg,S1-39,960x1280,,single_class,1,0,0
+orig_046.jpg,valid,original,set1,photo_90_2026-10-31_00-04-55.jpg,S1-39,960x1280,,single_class,1,0,0
+orig_047.jpg,valid,original,set1,photo_91_2026-10-31_00-04-55.jpg,S1-40,960x1280,,single_class,1,0,0
+orig_048.jpg,valid,original,set1,photo_92_2026-10-31_00-04-55.jpg,S1-40,960x1280,,single_class,1,0,0
+orig_049.jpg,train,original,set1,photo_93_2026-10-31_00-04-55.jpg,S1-41,1280x960,,single_class,1,0,0
+orig_050.jpg,train,original,set1,photo_1_2026-10-31_00-05-00.jpg,S1-42,960x1280,,single_class,1,0,0
+orig_051.jpg,train,original,set1,photo_4_2026-10-31_00-05-00.jpg,S1-42,960x1280,,single_class,1,0,0
+orig_052.jpg,train,original,set1,photo_6_2026-10-31_00-05-00.jpg,S1-43,1280x960,,multi_class,1,0,1
+orig_053.jpg,train,original,set1,photo_7_2026-10-31_00-05-00.jpg,S1-43,1280x960,,multi_class,1,0,1
+orig_054.jpg,test,original,set2,IMG_2134.HEIC,S2-01,3024x4032,,single_class,0,1,0
+orig_055.jpg,test,original,set2,IMG_2136.HEIC,S2-01,3024x4032,,single_class,0,1,0
+orig_056.jpg,test,original,set2,IMG_2138.HEIC,S2-02,4032x3024,,single_class,0,1,0
+orig_057.jpg,test,original,set2,IMG_2139.HEIC,S2-02,4032x3024,,single_class,0,1,0
+orig_058.jpg,test,original,set2,IMG_2140.HEIC,S2-03,4032x3024,,single_class,0,1,0
+orig_059.jpg,test,original,set2,IMG_2141.HEIC,S2-03,4032x3024,,single_class,0,1,0
+orig_060.jpg,train,original,set2,IMG_2143.HEIC,S2-04,4032x3024,,single_class,0,1,0
+orig_061.jpg,train,original,set2,IMG_2145.HEIC,S2-04,4032x3024,,single_class,0,1,0
+orig_062.jpg,train,original,set2,IMG_2146.HEIC,S2-05,3024x4032,,multi_class,0,1,1
+orig_063.jpg,train,original,set2,IMG_2147.HEIC,S2-05,3024x4032,,multi_class,0,1,1
+orig_064.jpg,valid,original,set2,IMG_2149.HEIC,S2-06,3024x4032,,multi_class,0,1,1
+orig_065.jpg,train,original,set2,IMG_2151.HEIC,S2-07,4032x3024,,multi_class,0,1,2
+orig_066.jpg,valid,original,set2,IMG_2153.HEIC,S2-08,3024x4032,,single_class,0,1,0
+orig_067.jpg,train,original,set2,IMG_2157.HEIC,S2-09,3024x4032,,single_class,0,0,1
+orig_068.jpg,train,original,set2,IMG_2160.HEIC,S2-10,4032x3024,,single_class,0,0,1
+orig_069.jpg,train,original,set2,IMG_2159.HEIC,S2-11,4032x3024,,single_class,0,0,2
+orig_070.jpg,train,original,set2,IMG_2166.HEIC,S2-13,4032x3024,,multi_class,0,1,4
+orig_071.jpg,valid,original,set2,IMG_2167.HEIC,S2-14,4032x3024,,single_class,0,0,1
+orig_072.jpg,valid,original,set2,IMG_2168.HEIC,S2-14,4032x3024,,single_class,0,0,1
+orig_073.jpg,train,original,set2,IMG_2178.HEIC,S2-15,3024x4032,,multi_class,1,1,4
+orig_074.jpg,train,original,set2,IMG_2182.HEIC,S2-16,4032x3024,,multi_class,1,1,4
+orig_075.jpg,train,original,set2,IMG_2183.HEIC,S2-17,4032x3024,,single_class,1,0,0
+orig_076.jpg,train,original,set2,IMG_2184.HEIC,S2-17,4032x3024,,single_class,1,0,0
+orig_077.jpg,train,original,set2,IMG_2185.HEIC,S2-18,4032x3024,,single_class,1,0,0
+orig_078.jpg,test,original,set2,IMG_2187.HEIC,S2-19,4032x3024,,single_class,1,0,0
+orig_079.jpg,test,original,set2,IMG_2188.HEIC,S2-19,4032x3024,,single_class,1,0,0
+orig_080.jpg,test,original,set2,IMG_2189.HEIC,S2-20,4032x3024,,single_class,1,0,0
+orig_081.jpg,test,original,set2,IMG_2190.HEIC,S2-20,4032x3024,,single_class,1,0,0
+orig_082.jpg,test,original,set2,IMG_2191.HEIC,S2-21,4032x3024,,single_class,1,0,0
+orig_083.jpg,train,original,set2,IMG_2192.HEIC,S2-22,3024x4032,,single_class,1,0,0
+orig_084.jpg,train,original,set2,IMG_2193.HEIC,S2-22,4032x3024,,single_class,1,0,0
+orig_085.jpg,valid,original,set2,IMG_2196.HEIC,S2-23,4032x3024,,multi_class,1,1,4
+orig_086.jpg,train,original,set2,IMG_2200.HEIC,S2-24,4032x3024,,multi_class,1,1,1
+orig_087.jpg,test,original,set2,IMG_2202.HEIC,S2-25,3024x4032,,single_class,0,0,1
+orig_088.jpg,test,original,set2,IMG_2203.HEIC,S2-26,4032x3024,,single_class,0,0,1
+orig_089.jpg,test,original,set2,IMG_2204.HEIC,S2-27,4032x3024,,single_class,0,0,1
+orig_090.jpg,test,original,set2,IMG_2205.HEIC,S2-28,4032x3024,,single_class,0,0,1
+orig_091.jpg,test,original,set2,IMG_2206.HEIC,S2-29,4032x3024,,single_class,0,0,1
+orig_092.jpg,test,original,set2,IMG_2213.HEIC,S2-30,4032x3024,,multi_class,1,1,0
+orig_093.jpg,train,original,set2,IMG_2214.HEIC,S2-31,4032x3024,,single_class,1,0,0
+orig_094.jpg,train,original,set2,IMG_2215.HEIC,S2-32,4032x3024,,multi_class,1,1,0
+orig_095.jpg,test,original,set2,IMG_2216.HEIC,S2-33,4032x3024,,multi_class,1,1,0
+orig_096.jpg,test,original,set2,IMG_2217.HEIC,S2-33,4032x3024,,multi_class,1,1,0
+orig_097.jpg,test,original,set2,IMG_2218.HEIC,S2-34,4032x3024,,multi_class,1,1,0
+orig_098.jpg,train,original,set2,IMG_2219.HEIC,S2-35,3024x4032,,single_class,0,0,1
+orig_099.jpg,test,original,set2,IMG_2221.HEIC,S2-36,4032x3024,,multi_class,1,0,2
+orig_100.jpg,train,original,set1,photo_5_2026-10-31_00-04-54.jpg,S1-04,960x1280,,multi_class,1,1,2
+orig_101.jpg,train,original,set1,photo_10_2026-10-31_00-04-54.jpg,S1-44,960x1280,,multi_class,1,2,2
+orig_102.jpg,train,original,set1,photo_54_2026-10-31_00-04-55.jpg,S1-45,960x1280,,multi_class,1,2,2
+orig_103.jpg,valid,original,set1,photo_57_2026-10-31_00-04-55.jpg,S1-24,960x1280,,multi_class,1,2,1
+orig_104.jpg,valid,original,set1,photo_61_2026-10-31_00-04-55.jpg,S1-24,960x1280,,multi_class,1,2,1
+orig_105.jpg,train,original,set1,photo_59_2026-10-31_00-04-55.jpg,S1-46,960x1280,,multi_class,1,2,1
+orig_106.jpg,test,original,set1,photo_63_2026-10-31_00-04-55.jpg,S1-25,960x1280,,multi_class,1,2,1
+orig_107.jpg,test,original,set1,photo_65_2026-10-31_00-04-55.jpg,S1-47,960x1280,,multi_class,1,2,1
+orig_108.jpg,test,original,set1,photo_66_2026-10-31_00-04-55.jpg,S1-47,960x1280,,multi_class,1,2,0
+orig_109.jpg,test,original,set1,photo_68_2026-10-31_00-04-55.jpg,S1-28,960x1280,,multi_class,1,1,1
+orig_110.jpg,test,original,set1,photo_70_2026-10-31_00-04-55.jpg,S1-28,960x1280,,multi_class,1,1,0
+orig_111.jpg,test,original,set1,photo_72_2026-10-31_00-04-55.jpg,S1-48,960x1280,,multi_class,1,1,1
+orig_112.jpg,valid,original,set1,photo_83_2026-10-31_00-04-55.jpg,S1-49,960x1280,,multi_class,1,0,1
+orig_113.jpg,valid,original,set1,photo_94_2026-10-31_00-04-55.jpg,S1-50,960x1280,,single_class,1,0,0
+orig_114.jpg,train,original,set1,photo_2_2026-10-31_00-05-00.jpg,S1-42,960x1280,,single_class,1,0,0
+orig_115.jpg,train,original,set1,photo_3_2026-10-31_00-05-00.jpg,S1-42,960x1280,,single_class,1,0,0
+orig_116.jpg,train,original,set1,photo_5_2026-10-31_00-05-00.jpg,S1-42,960x1280,,single_class,1,0,0
+orig_117.jpg,train,original,set1,photo_8_2026-10-31_00-05-00.jpg,S1-42,960x1280,,single_class,1,0,0
+orig_118.jpg,train,original,set1,photo_58_2026-10-31_00-04-55.jpg,S1-23,960x1280,,multi_class,1,2,1
+orig_119.jpg,train,original,set1,photo_33_2026-10-31_00-04-55.jpg,S1-51,960x1280,,multi_class,1,2,1
+orig_120.jpg,train,original,set1,photo_41_2026-10-31_00-04-55.jpg,S1-18,960x1280,,multi_class,1,2,1
+orig_121.jpg,train,original,set2,IMG_2186.HEIC,S2-18,4032x3024,,single_class,1,0,0
+orig_122.jpg,test,original,set2,IMG_2220.HEIC,S2-36,3024x4032,,multi_class,1,0,2
+orig_123.jpg,train,original,set2,IMG_2201.HEIC,S2-24,4032x3024,,multi_class,1,1,1
+orig_124.jpg,train,original,set2,IMG_2208.HEIC,S2-38,3024x4032,,multi_class,1,1,4
+orig_125.jpg,train,original,set2,IMG_2161.HEIC,S2-11,4032x3024,,multi_class,0,1,1
+orig_126.jpg,valid,original,set2,IMG_2148.HEIC,S2-06,3024x4032,,multi_class,0,1,1
+orig_127.jpg,train,original,set3,34f08abb7c2f84b415e4cb36d27a7e4a.JPG,S3-01,4032x3024,,single_class,1,0,0
+orig_128.jpg,train,original,set3,603e2c21be0e1074bdb22bb9c0450d67.JPG,S3-01,3024x4032,,single_class,1,0,0
+orig_129.jpg,train,original,set3,bb4bb0c9412564ae0ae6379146f81405.JPG,S3-01,3024x4032,,single_class,1,0,0
+orig_130.jpg,train,original,set3,c6ed5a11a8182640f432f480fcb3bb57.JPG,S3-01,3024x4032,,single_class,1,0,0
+orig_131.jpg,train,original,set3,ca713f43c483e898830da937653d26c2.JPG,S3-01,4032x3024,,single_class,1,0,0
+orig_132.jpg,train,original,set3,d33582fa8b518ccb678c9a648eebb5d6.JPG,S3-01,3024x4032,,single_class,1,0,0
+orig_133.jpg,train,original,set3,eb1b3f5c3c4dd888a9633390f63aa0d2.JPG,S3-01,4032x3024,,single_class,1,0,0
+hardware_tools_0001.jpg,train,public,hardware_tools,01j71f_jpg.rf.ca9dc25759877efa08329836fea2b8bc.jpg,hw-0171,,,single_class,0,0,1
+hardware_tools_0002.jpg,train,public,hardware_tools,07569o_jpg.rf.58c132018f78a1ca9bef029aab44a894.jpg,hw-07569,,,single_class,0,1,0
+hardware_tools_0003.jpg,train,public,hardware_tools,0oe8t2_jpg.rf.bdbd9c4cf9bd15db532c2a5de6f2d700.jpg,hw-082,,,single_class,0,0,1
+hardware_tools_0004.jpg,train,public,hardware_tools,1000004668_jpg.rf.066fde5ae140a271df885d6c894a1970.jpg,hw-1000004668,,,single_class,0,1,0
+hardware_tools_0005.jpg,train,public,hardware_tools,1c237e_jpg.rf.805755dae14c4ea2892797b3a9e9edd6.jpg,hw-1237,,,single_class,0,1,0
+hardware_tools_0006.jpg,train,public,hardware_tools,1j3dt7_jpg.rf.707c73dd3408f56fab353d26339d176c.jpg,hw-137,,,single_class,0,0,1
+hardware_tools_0007.jpg,train,public,hardware_tools,4m3k5o_jpg.rf.62b633e83a9d5cfd43bd99f263995726.jpg,hw-435,,,single_class,0,0,1
+hardware_tools_0008.jpg,train,public,hardware_tools,4xv153_jpg.rf.f7b4634652fd6bd93eb0297d99b48fa8.jpg,hw-4153,,,single_class,0,0,1
+hardware_tools_0009.jpg,train,public,hardware_tools,5jnaqt_jpg.rf.7779f1bc9bcd6c313a6945572373f3e5.jpg,hw-5,,,single_class,0,1,0
+hardware_tools_0010.jpg,train,public,hardware_tools,6ecpf4_jpg.rf.25a9f972cd62f779d068824c53861f77.jpg,hw-64,,,single_class,0,0,1
+hardware_tools_0011.jpg,train,public,hardware_tools,6yik1z_jpg.rf.249db71fa75fd92ea8f33cf12d798abc.jpg,hw-61,,,single_class,0,1,0
+hardware_tools_0012.jpg,train,public,hardware_tools,815n4m_jpg.rf.a00b3ba6f057b51f49f4f14a29c6ffef.jpg,hw-8154,,,single_class,0,1,0
+hardware_tools_0013.jpg,train,public,hardware_tools,9m4jd9_jpg.rf.89838928ee661cc355badcec5421e22d.jpg,hw-949,,,single_class,0,0,1
+hardware_tools_0014.jpg,train,public,hardware_tools,IMG20260106121119_jpg.rf.311375e5ca1046eba8e8c8e9cd085554.jpg,hw-202601061211,,,single_class,0,1,0
+hardware_tools_0015.jpg,train,public,hardware_tools,IMG20260121130043_jpg.rf.c9eecaa86c8a36170853832221922d06.jpg,hw-202601211300,,,single_class,0,1,0
+hardware_tools_0016.jpg,train,public,hardware_tools,IMG20260121130054_jpg.rf.3e115666730347a955e3a51c014cb0bc.jpg,hw-202601211300,,,single_class,0,1,0
+hardware_tools_0017.jpg,train,public,hardware_tools,IMG20260121130101_jpg.rf.ef339b6b27d805e5ba089682ef8d6fbf.jpg,hw-202601211301,,,single_class,0,1,0
+hardware_tools_0018.jpg,train,public,hardware_tools,IMG_20251208_170220024_jpg.rf.a028348784b3e4c1d88949ff66c51528.jpg,hw-202512081702,,,single_class,0,1,0
+hardware_tools_0019.jpg,train,public,hardware_tools,IMG_20251208_170252098_jpg.rf.a171c308ee18398019a9def75b8716d3.jpg,hw-202512081702,,,single_class,0,1,0
+hardware_tools_0020.jpg,train,public,hardware_tools,IMG_20251208_170329815_jpg.rf.827af76d4d003bc7a19ee9e2bcb9cb3d.jpg,hw-202512081703,,,single_class,0,1,0
+hardware_tools_0021.jpg,train,public,hardware_tools,IMG_20251209_112058257_jpg.rf.c83f743c2771203cbc04a22972776119.jpg,hw-202512091120,,,single_class,0,0,1
+hardware_tools_0022.jpg,train,public,hardware_tools,IMG_20251209_112102812_jpg.rf.7ce4cad358ce36619545fedf51bf32de.jpg,hw-202512091121,,,single_class,0,0,1
+hardware_tools_0023.jpg,train,public,hardware_tools,IMG_20251209_112351019_jpg.rf.b8dc7c52fc7dafef5fe5fa6ef936ba85.jpg,hw-202512091123,,,single_class,0,0,1
+hardware_tools_0024.jpg,train,public,hardware_tools,IMG_20251209_112420210_jpg.rf.5b20f72b02b8f5caf5a0926773479358.jpg,hw-202512091124,,,single_class,0,0,1
+hardware_tools_0025.jpg,train,public,hardware_tools,IMG_20251209_112426900_jpg.rf.39ed04512dca4e12b3a3090dd2d020c3.jpg,hw-202512091124,,,single_class,0,0,1
+hardware_tools_0026.jpg,train,public,hardware_tools,IMG_20251209_112525072_jpg.rf.293578a63958f716716336262690027b.jpg,hw-202512091125,,,single_class,0,0,1
+hardware_tools_0027.jpg,train,public,hardware_tools,IMG_20260115_173731687-1-_jpg.rf.4392b16e1029bdf38aef1ade02508851.jpg,hw-202601151737,,,single_class,0,0,1
+hardware_tools_0028.jpg,train,public,hardware_tools,IMG_20260115_220613353_jpg.rf.af992e0159c194ae104ae28ede6c8cb0.jpg,hw-202601152206,,,single_class,0,1,0
+hardware_tools_0029.jpg,train,public,hardware_tools,IMG_20260121_130149043_jpg.rf.480e8ccc490e3d7ae7d59427b58b11a8.jpg,hw-202601211301,,,single_class,0,0,1
+hardware_tools_0030.jpg,train,public,hardware_tools,IMG_20260121_130151028_jpg.rf.edaa9918edc8d251594f856c3d0a6f44.jpg,hw-202601211301,,,single_class,0,0,1
+hardware_tools_0031.jpg,train,public,hardware_tools,IMG_20260121_130201704_jpg.rf.56e8ccfe340ac407573d3f325610ab3f.jpg,hw-202601211302,,,single_class,0,0,1
+hardware_tools_0032.jpg,train,public,hardware_tools,IMG_20260121_130208209_jpg.rf.778184f0abcc0a0c35a605db78cce13c.jpg,hw-202601211302,,,single_class,0,0,1
+hardware_tools_0033.jpg,train,public,hardware_tools,IMG_20260121_130221949_jpg.rf.0286aee817547e9a6050c4a532fb4483.jpg,hw-202601211302,,,single_class,0,0,1
+hardware_tools_0034.jpg,train,public,hardware_tools,IMG_20260121_130246907_jpg.rf.06394d1b17d97ab3e4821b2d4df821ec.jpg,hw-202601211302,,,single_class,0,0,1
+hardware_tools_0035.jpg,train,public,hardware_tools,IMG_20260121_130326857_jpg.rf.ff91872b86c8b4b8ba0886439fd8ed55.jpg,hw-202601211303,,,single_class,0,0,1
+hardware_tools_0036.jpg,train,public,hardware_tools,IMG_20260122_114259716_jpg.rf.ea1146efbc1114faf108431e89c53f3a.jpg,hw-202601221142,,,single_class,0,0,1
+hardware_tools_0037.jpg,train,public,hardware_tools,IMG_20260125_132830997_jpg.rf.b1315979dbd61d76a54034b13dcfd8ec.jpg,hw-202601251328,,,single_class,0,0,1
+hardware_tools_0038.jpg,train,public,hardware_tools,IMG_20260125_133102665_jpg.rf.1b47959aa64857d05810ca4201f07ece.jpg,hw-202601251331,,,single_class,0,0,1
+hardware_tools_0039.jpg,train,public,hardware_tools,IMG_20260125_133218228_jpg.rf.7344573c84368841730986af8cfde7b0.jpg,hw-202601251332,,,single_class,0,0,1
+hardware_tools_0040.jpg,train,public,hardware_tools,IMG_20260125_133224068_jpg.rf.df19af4740f88d177b870ecbf4607cc6.jpg,hw-202601251332,,,single_class,0,0,1
+hardware_tools_0041.jpg,train,public,hardware_tools,IMG_20260125_215647095_jpg.rf.063ae0ac7c915096590d8b219e0a499e.jpg,hw-202601252156,,,single_class,0,1,0
+hardware_tools_0042.jpg,train,public,hardware_tools,IMG_20260125_215649737_jpg.rf.40064dbba949703f5e049fdb93b6e837.jpg,hw-202601252156,,,single_class,0,1,0
+hardware_tools_0043.jpg,train,public,hardware_tools,IMG_20260125_215700841_jpg.rf.b27d7edbe5d89e9a98d1a70232e91555.jpg,hw-202601252157,,,single_class,0,2,0
+hardware_tools_0044.jpg,train,public,hardware_tools,IMG_20260125_215707993_jpg.rf.abc7081b4222962253b0fc0ca19dda79.jpg,hw-202601252157,,,single_class,0,1,0
+hardware_tools_0045.jpg,train,public,hardware_tools,IMG_20260125_215713608_jpg.rf.3d095c1770d2ebca7b8b743f0739d13b.jpg,hw-202601252157,,,single_class,0,1,0
+hardware_tools_0046.jpg,train,public,hardware_tools,IMG_20260125_215805624_jpg.rf.6bdd9fd1cb9ebb653a300f34e776b807.jpg,hw-202601252158,,,single_class,0,1,0
+hardware_tools_0047.jpg,train,public,hardware_tools,IMG_20260125_215809192_jpg.rf.c0735aa9445543fbae9ddd7fa4124d7c.jpg,hw-202601252158,,,single_class,0,1,0
+hardware_tools_0048.jpg,train,public,hardware_tools,IMG_20260125_215817129_jpg.rf.8fbaf7f22aa4167cc045ea9629bc4f90.jpg,hw-202601252158,,,single_class,0,1,0
+hardware_tools_0049.jpg,train,public,hardware_tools,IMG_20260125_215901560_jpg.rf.98190d9e8762f2c6e3c80d80d8be713f.jpg,hw-202601252159,,,single_class,0,1,0
+hardware_tools_0050.jpg,train,public,hardware_tools,bd7ny7_jpg.rf.aba2f629a91d76e81edf96fd16ec7f79.jpg,hw-77,,,single_class,0,0,1
+hardware_tools_0051.jpg,train,public,hardware_tools,bvnng8_jpg.rf.2e80058227102a2e89f91cd66b331d84.jpg,hw-8,,,single_class,0,0,1
+hardware_tools_0052.jpg,train,public,hardware_tools,cpo1b9_jpg.rf.79bb4480b85687ddc5004e0c05823192.jpg,hw-19,,,single_class,0,0,1
+hardware_tools_0053.jpg,train,public,hardware_tools,ep1qex_jpg.rf.e0ac779e41a5c2bb1dff816b095233b8.jpg,hw-1,,,single_class,0,0,1
+hardware_tools_0054.jpg,train,public,hardware_tools,ijpoe0_jpg.rf.8a9c82d64692f9c9e9835f9a0b05549d.jpg,hw-0,,,single_class,0,1,0
+hardware_tools_0055.jpg,train,public,hardware_tools,jwj3jr_jpg.rf.c174c7a73a59ff276baeaf042a3646db.jpg,hw-3,,,single_class,0,0,1
+hardware_tools_0056.jpg,train,public,hardware_tools,nyu2vx_jpg.rf.57dba16ee021020a3187bbda33654a09.jpg,hw-2,,,single_class,0,0,1
+hardware_tools_0057.jpg,train,public,hardware_tools,qa4rrm_jpg.rf.296f8bd71544b4afb5c274fe740aae57.jpg,hw-4,,,single_class,0,0,1
+hardware_tools_0058.jpg,train,public,hardware_tools,r7e3m1_jpg.rf.6969010e4094dfc1704299f3a278cb3e.jpg,hw-731,,,single_class,0,1,0
+hardware_tools_0059.jpg,train,public,hardware_tools,rycb30_jpg.rf.37d180e717ca0ace7adb7ca3c9cb08ed.jpg,hw-30,,,single_class,0,0,1
+hardware_tools_0060.jpg,train,public,hardware_tools,sdgh1n_jpg.rf.1c6ff5b67eca781934b9bf55426e3a7d.jpg,hw-1,,,single_class,0,0,1
+hardware_tools_0061.jpg,train,public,hardware_tools,sgaur5_jpg.rf.aae688412f46f418ceb4aae7baeedca4.jpg,hw-5,,,single_class,0,0,1
+hardware_tools_0062.jpg,train,public,hardware_tools,udqxr0_jpg.rf.37848585f9aa752c3b63ccba53ac1fe5.jpg,hw-0,,,single_class,0,0,1
+hardware_tools_0063.jpg,train,public,hardware_tools,uj2rv7_jpg.rf.ad9910eab1ba91eb266f20dac38d22b7.jpg,hw-27,,,single_class,0,1,0
+hardware_tools_0064.jpg,train,public,hardware_tools,wkaptb_jpg.rf.d6758d1decaf2581b06336c5a3356945.jpg,hw-,,,single_class,0,1,0
+hardware_tools_0065.jpg,train,public,hardware_tools,wlnufw_jpg.rf.074c2e0ab7d786a3e59a55a42e4335fb.jpg,hw-,,,single_class,0,1,0
+hardware_tools_0066.jpg,train,public,hardware_tools,ycv5yn_jpg.rf.915c393aaa187fb1c72af7d2a01640df.jpg,hw-5,,,single_class,0,1,0
+metu_alet_0067.jpg,train,public,metu_alet,2083371706_d86453193c_z.jpg,metu-2083371706_d86453193c_z.jpg,,,single_class,0,1,0
+metu_alet_0068.jpg,train,public,metu_alet,4932425928_f10021a894_z.jpg,metu-4932425928_f10021a894_z.jpg,,,single_class,0,1,0
+metu_alet_0069.jpg,train,public,metu_alet,5816210820_dc09424dc2_z.jpg,metu-5816210820_dc09424dc2_z.jpg,,,single_class,1,0,0
+metu_alet_0070.jpg,train,public,metu_alet,8227371717_f7aa02b2e4_z.jpg,metu-8227371717_f7aa02b2e4_z.jpg,,,single_class,2,0,0
+metu_alet_0071.jpg,train,public,metu_alet,m_flickr_workshop185.jpg,metu-m_flickr_workshop185.jpg,,,single_class,0,1,0
+metu_alet_0072.jpg,train,public,metu_alet,m_flickr_workshop60.jpg,metu-m_flickr_workshop60.jpg,,,multi_class,0,1,1
+metu_alet_0073.jpg,train,public,metu_alet,mixed14.jpg,metu-mixed14.jpg,,,single_class,0,1,0
+metu_alet_0074.jpg,train,public,metu_alet,mixed15.jpg,metu-mixed15.jpg,,,single_class,0,1,0
+metu_alet_0075.jpg,train,public,metu_alet,mixed21.jpg,metu-mixed21.jpg,,,single_class,0,1,0
+metu_alet_0076.jpg,train,public,metu_alet,mixed28.jpg,metu-mixed28.jpg,,,single_class,0,1,0
+metu_alet_0077.jpg,train,public,metu_alet,mixed31.jpg,metu-benchA,,,single_class,1,0,0
+metu_alet_0078.jpg,train,public,metu_alet,mixed39.jpg,metu-benchA,,,single_class,1,0,0
+metu_alet_0079.jpg,train,public,metu_alet,mixed49.jpg,metu-benchA,,,single_class,1,0,0
+metu_alet_0080.jpg,train,public,metu_alet,mixed56.jpg,metu-benchA,,,single_class,1,0,0
+metu_alet_0081.jpg,train,public,metu_alet,mixed58.jpg,metu-benchA,,,single_class,1,0,0
+metu_alet_0082.jpg,train,public,metu_alet,mixed79.jpg,metu-mixed79.jpg,,,single_class,0,1,0
+metu_alet_0083.jpg,train,public,metu_alet,pixabay_office1.jpg,metu-pixabay_office1.jpg,,,single_class,0,1,0
+metu_alet_0084.jpg,train,public,metu_alet,pixabay_office4.jpg,metu-pixabay_office4.jpg,,,single_class,0,3,0
+metu_alet_0085.jpg,train,public,metu_alet,wikimgs_construction210.jpg,metu-wikimgs_construction210.jpg,,,single_class,1,0,0
+metu_alet_0086.jpg,train,public,metu_alet,wikimgs_construction213.jpg,metu-floorA,,,single_class,1,0,0
+metu_alet_0087.jpg,train,public,metu_alet,wikimgs_construction215.jpg,metu-floorA,,,single_class,1,0,0
+metu_alet_0088.jpg,train,public,metu_alet,wikimgs_construction217.jpg,metu-floorB,,,single_class,1,0,0
+metu_alet_0089.jpg,train,public,metu_alet,wikimgs_construction219.jpg,metu-floorA,,,single_class,1,0,0
+metu_alet_0090.jpg,train,public,metu_alet,wikimgs_construction220.jpg,metu-wikimgs_construction220.jpg,,,single_class,1,0,0
+metu_alet_0091.jpg,train,public,metu_alet,wikimgs_construction221.jpg,metu-floorA,,,single_class,1,0,0
+metu_alet_0092.jpg,train,public,metu_alet,wikimgs_construction230.jpg,metu-floorB,,,single_class,1,0,0
+metu_alet_0093.jpg,train,public,metu_alet,wikimgs_construction234.jpg,metu-wikimgs_construction234.jpg,,,single_class,1,0,0
+metu_alet_0094.jpg,train,public,metu_alet,wikimgs_construction236.jpg,metu-wikimgs_construction236.jpg,,,single_class,1,0,0
+metu_alet_0095.jpg,train,public,metu_alet,wikimgs_construction526.jpg,metu-wikimgs_construction526.jpg,,,multi_class,1,0,1
+open_images_0096.jpg,train,public,open_images,00f1220b911e7711.jpg,oi-BrunoCordioli,,https://www.flickr.com/photos/br1dotcom/4374903709 | Bruno Cordioli | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0097.jpg,train,public,open_images,01bce5b2dd400f5d.jpg,oi-AndrewRatto,,https://www.flickr.com/photos/andydr/78142037 | Andrew Ratto | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0098.jpg,train,public,open_images,025a8c05010c7a45.jpg,oi-BrendanRiley,,https://www.flickr.com/photos/digitalsextant/7254858276 | Brendan Riley | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0099.jpg,train,public,open_images,030cea12e4e1af55.jpg,oi-flippinyank,,https://www.flickr.com/photos/26326001@N08/4173684416 | flippinyank | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0100.jpg,train,public,open_images,039d98c90d183417.jpg,oi-AlanLevine,,https://www.flickr.com/photos/cogdog/5599244731/ | Alan Levine | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0101.jpg,train,public,open_images,0665cd6767d4c327.jpg,oi-KiranFoster,,https://www.flickr.com/photos/rueful/5847295406 | Kiran Foster | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0102.jpg,train,public,open_images,0783e6d50c29fd31.jpg,oi-JohanSölve,,https://www.flickr.com/photos/macsolve/3095697469 | Johan Sölve | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0103.jpg,valid,public,open_images,09073ab349d21636.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/10604242776 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0104.jpg,train,public,open_images,09a2d5e9de3e6356.jpg,oi-trenttsd,,https://www.flickr.com/photos/84335369@N00/6956076919 | trenttsd | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0105.jpg,train,public,open_images,09f67542c4ac4b71.jpg,oi-oswaldo,,https://www.flickr.com/photos/oswaldo/426038596 | oswaldo | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0106.jpg,train,public,open_images,0a123e37d5ebbcb5.jpg,oi-JamesBowe,,https://www.flickr.com/photos/jamesrbowe/3708293822 | James Bowe | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0107.jpg,valid,public,open_images,0a7b3fdc6d59b5f4.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/7140325201 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0108.jpg,train,public,open_images,0aaa49dbd6d6afa5.jpg,oi-PLo,,https://www.flickr.com/photos/ikeepemclean/8703348290 | P Lo | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0109.jpg,train,public,open_images,0b07a6323c64c43c.jpg,oi-OzzyDelaney,,https://www.flickr.com/photos/24931020@N02/16019054201 | Ozzy Delaney | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0110.jpg,train,public,open_images,0b07b8547c04cddf.jpg,oi-RyanSchreiber,,https://www.flickr.com/photos/7296328@N07/13608166735 | Ryan Schreiber | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0111.jpg,valid,public,open_images,0f5002d5adc1b9e0.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/8267343996 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0112.jpg,valid,public,open_images,0faa2acec61d832e.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/7643157592 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0113.jpg,train,public,open_images,11994162a905f4be.jpg,oi-MarkHunter,,https://flickr.com/42408834@N06/4403981526 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0114.jpg,train,public,open_images,12dda51af88b7aaa.jpg,oi-DavidMellis,,https://www.flickr.com/photos/mellis/6261684885 | David Mellis | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0115.jpg,valid,public,open_images,12f9ffba29168e64.jpg,oi-TatsuoYamashita,,https://www.flickr.com/photos/yto/4099992671 | Tatsuo Yamashita | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0116.jpg,valid,public,open_images,134f5428710fad6b.jpg,oi-LenoreEdman,,https://www.flickr.com/photos/lenore-m/2755337747 | Lenore Edman | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0117.jpg,train,public,open_images,1418cbfa90aabc18.jpg,oi-homestilo,,https://www.flickr.com/photos/homestilo/8228190127 | homestilo | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0118.jpg,train,public,open_images,15ccde47b9e6ebcb.jpg,oi-zombieite,,https://www.flickr.com/photos/zombieite/11394938335 | zombieite | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0119.jpg,train,public,open_images,15d6b86f17fffa43.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/4403976874 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,2,0,0
+open_images_0120.jpg,train,public,open_images,16561321b22bd880.jpg,oi-gruetter,,https://www.flickr.com/photos/gruetter/2559145074 | gruetter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0121.jpg,train,public,open_images,17d1bb72153db9dd.jpg,oi-MelissaHillier,,https://www.flickr.com/photos/77423179@N02/7713928354 | Melissa Hillier | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0122.jpg,train,public,open_images,17dfa42b144d2eef.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/4294379901 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0123.jpg,train,public,open_images,191feb2b1ffc671c.jpg,oi-LenaWood,,https://www.flickr.com/photos/alittleyard/4444923052 | Lena Wood | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0124.jpg,train,public,open_images,1976c4db345c539e.jpg,oi-ScottAkerman,,https://www.flickr.com/photos/sterlic/11742257435 | Scott Akerman | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0125.jpg,train,public,open_images,1a0250a5b3bdd47f.jpg,oi-lariviere,,https://www.flickr.com/photos/la_riviere/2617436899 | la riviere | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0126.jpg,train,public,open_images,1c9c30bbe43ff9b0.jpg,oi-BrianMoloney,,https://www.flickr.com/photos/crown_molding/5015959180 | Brian  Moloney | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0127.jpg,train,public,open_images,1debd7f981425527.jpg,oi-RodrigoParedes,,https://www.flickr.com/photos/roparedes/4444263726 | Rodrigo Paredes | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0128.jpg,train,public,open_images,1eacddedf1779e5b.jpg,oi-BrianMoloney,,https://www.flickr.com/photos/crown_molding/5015960312 | Brian  Moloney | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0129.jpg,train,public,open_images,1f10b3e18c251566.jpg,oi-HomeSpotHQ,,https://www.flickr.com/photos/86639298@N02/8559735387 | HomeSpot HQ | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,3
+open_images_0130.jpg,train,public,open_images,2082f1cfde105fa6.jpg,oi-Jimmie,,https://www.flickr.com/photos/jimmiehomeschoolmom/4421394125 | Jimmie | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0131.jpg,train,public,open_images,253c1627edc7f6bb.jpg,oi-DominicAlves,,https://www.flickr.com/photos/dominicspics/6861302904 | Dominic Alves | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0132.jpg,train,public,open_images,26fb5c43bd996f94.jpg,oi-MIKIYoshihito,,https://www.flickr.com/photos/mujitra/6660382559 | MIKI Yoshihito | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0133.jpg,train,public,open_images,274112131556f171.jpg,oi-HomeSpotHQ,,https://www.flickr.com/photos/86639298@N02/8559725421 | HomeSpot HQ | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0134.jpg,train,public,open_images,27ac187d90a1afe2.jpg,oi-OregonDepartmentofTransportati,,https://www.flickr.com/photos/oregondot/17508002854 | Oregon Department of Transportation | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0135.jpg,train,public,open_images,294d67b3497b8c88.jpg,oi-poppetwithacamera,,https://www.flickr.com/photos/infobunny/8281122629 | poppet with a camera | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0136.jpg,train,public,open_images,29f28faf85e57f2b.jpg,oi-StevenDepolo,,https://www.flickr.com/photos/stevendepolo/3015110514 | Steven Depolo | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0137.jpg,train,public,open_images,2ad739a75e52ab28.jpg,oi-HobbiesonaBudget,,https://www.flickr.com/photos/62030038@N02/8430922414 | Hobbies on a Budget | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0138.jpg,train,public,open_images,2c23d1d4d1a12c5d.jpg,oi-PersonalCreations,,https://www.flickr.com/photos/personalcreations/15075488562 | Personal Creations | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0139.jpg,train,public,open_images,2d24d052028dbe5a.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3912227980 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0140.jpg,train,public,open_images,2e710a497218e37d.jpg,oi-antweightrobots,,https://www.flickr.com/photos/86941106@N05/7963536182 | antweightrobots | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0141.jpg,train,public,open_images,3544d6c305b3fdc3.jpg,oi-어쩌면프로젝트,,https://www.flickr.com/photos/sinbiphone/7224711666 | 어쩌면 프로젝트 | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0142.jpg,train,public,open_images,356efa0fe43ebdd8.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3912233714 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0143.jpg,valid,public,open_images,363738fd19dee9a9.jpg,oi-TatsuoYamashita,,https://www.flickr.com/photos/yto/14033793767 | Tatsuo Yamashita | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0144.jpg,train,public,open_images,38cf55592ebb90d7.jpg,oi-JanWillemReusink,,https://www.flickr.com/photos/jimmybenson/16820420280 | Jan-Willem Reusink | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0145.jpg,train,public,open_images,3a7c17023688c7ca.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3912228658 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0146.jpg,valid,public,open_images,3c4f4c84e7b9d1f3.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/15262796883 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0147.jpg,train,public,open_images,3ea12db3e96c24e6.jpg,oi-AlanLevine,,https://www.flickr.com/photos/cogdog/17857997136 | Alan Levine | https://creativecommons.org/licenses/by/2.0/,single_class,0,2,0
+open_images_0148.jpg,train,public,open_images,3fb522081792e5f2.jpg,oi-OffuttAirForceBase,,https://www.flickr.com/photos/offutt_afb/5613885608 | Offutt Air Force Base | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0149.jpg,train,public,open_images,40da16b1fc2c0a65.jpg,oi-ConsumeristDotCom,,https://www.flickr.com/photos/consumerist/2565887081 | Consumerist Dot Com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0150.jpg,train,public,open_images,43b1d79183edac80.jpg,oi-JieQi,,https://www.flickr.com/photos/jieq/15761417455 | Jie Qi | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0151.jpg,train,public,open_images,44042bc90640163f.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/4887725808 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0152.jpg,train,public,open_images,4433484725cc759e.jpg,oi-EmilyMay,,https://www.flickr.com/photos/emilysnuffer/14591911895 | Emily May | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0153.jpg,train,public,open_images,44b647f196182f4e.jpg,oi-CreativeTools,,https://www.flickr.com/photos/creative_tools/4328695156 | Creative Tools | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0154.jpg,valid,public,open_images,454faea5eb51ab91.jpg,oi-TatsuoYamashita,,https://www.flickr.com/photos/yto/4100748838 | Tatsuo Yamashita | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0155.jpg,train,public,open_images,45f99910ffcc9dd1.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3926218980 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0156.jpg,train,public,open_images,483e50cf1301ca40.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/4887708058 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0157.jpg,train,public,open_images,4910a871de86e1b8.jpg,oi-OpenKnowledge,,https://www.flickr.com/photos/okfn/9100433330 | Open Knowledge | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0158.jpg,train,public,open_images,49e882c711318c9f.jpg,oi-AlperÇuğun,,https://www.flickr.com/photos/alper/3996080809 | Alper Çuğun | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0159.jpg,train,public,open_images,4cf439d71969bf08.jpg,oi-WesleyFryer,,https://www.flickr.com/photos/wfryer/16606554923 | Wesley Fryer | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0160.jpg,valid,public,open_images,4edf280ec87a1e26.jpg,oi-TatsuoYamashita,,https://www.flickr.com/photos/yto/4100750196 | Tatsuo Yamashita | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0161.jpg,train,public,open_images,4fce9c586b5a820a.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/5473285511 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0162.jpg,train,public,open_images,4fdb23994bcce1d4.jpg,oi-ChrisPotter,,https://www.flickr.com/photos/86530412@N02/8187121312 | Chris Potter | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0163.jpg,train,public,open_images,52c6cb95990757a8.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/4887707340/ | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,2,0,0
+open_images_0164.jpg,train,public,open_images,537db472a69658b4.jpg,oi-AnsgarWarner,,https://www.flickr.com/photos/65886797@N02/7520215804 | Ansgar Warner | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0165.jpg,train,public,open_images,543583d2cad2e699.jpg,oi-Katie,,https://www.flickr.com/photos/katielicht/8622087992 | Katie | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0166.jpg,valid,public,open_images,5483fa8be14fe118.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/8110880175 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0167.jpg,train,public,open_images,55d77ec56ea1835d.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3912240516 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0168.jpg,train,public,open_images,574d7455ce4bff11.jpg,oi-craftivistcollective,,https://www.flickr.com/photos/craftivist-collective/4999057249 | craftivist collective | https://creativecommons.org/licenses/by/2.0/,single_class,0,2,0
+open_images_0169.jpg,train,public,open_images,57adaf213bc58dda.jpg,oi-TimoKuusela,,https://www.flickr.com/photos/rdvortex/559276562 | Timo Kuusela | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0170.jpg,train,public,open_images,58503a8b2c2eb121.jpg,oi-ConsumeristDotCom,,https://www.flickr.com/photos/consumerist/4406234952 | Consumerist Dot Com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0171.jpg,train,public,open_images,587d965669dea9e1.jpg,oi-WindellOskay,,https://www.flickr.com/photos/oskay/1329530448 | Windell Oskay | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0172.jpg,train,public,open_images,5903de3b856ef381.jpg,oi-EricChan,,https://www.flickr.com/photos/maveric2003/4848917942 | Eric Chan | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0173.jpg,train,public,open_images,5d91f6ba078172dd.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3912238132 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0174.jpg,train,public,open_images,5db8215110a5e096.jpg,oi-RyanMcFarland,,https://www.flickr.com/photos/zieak/5177755870 | Ryan McFarland | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0175.jpg,train,public,open_images,5e24506f38d4187c.jpg,oi-AdamSmith,,https://www.flickr.com/photos/rndmcnlly/9450510796 | Adam Smith | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0176.jpg,train,public,open_images,62320c18e368fe84.jpg,oi-WidarNord,,https://www.flickr.com/photos/widarnord/3846645786 | Widar Nord | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0177.jpg,train,public,open_images,62ab01a9ee855641.jpg,oi-RickMcCharles,,https://www.flickr.com/photos/rickmccharles/5473852471 | Rick McCharles | https://creativecommons.org/licenses/by/2.0/,single_class,2,0,0
+open_images_0178.jpg,train,public,open_images,639ba1228436c9d1.jpg,oi-EspenKlem,,https://www.flickr.com/photos/eklem/5168522971 | Espen Klem | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0179.jpg,train,public,open_images,64c22d67fd6e2b2c.jpg,oi-BenMason,,https://www.flickr.com/photos/siberianluck/3390447173 | Ben Mason | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0180.jpg,train,public,open_images,658a97ba381ade18.jpg,oi-lariviere,,https://www.flickr.com/photos/la_riviere/3255423058 | la riviere | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0181.jpg,train,public,open_images,66a3beb56e4ca812.jpg,oi-TakashiYamamiya,,https://www.flickr.com/photos/propella/4165539704 | Takashi Yamamiya | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0182.jpg,train,public,open_images,6b7b9358937fb87a.jpg,oi-EmilianRobertVicol,,https://www.flickr.com/photos/free-stock/4904404407 | Emilian Robert Vicol | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0183.jpg,train,public,open_images,6e76959fdf30e23d.jpg,oi-HidetoKOBAYASHI,,https://www.flickr.com/photos/hide10/10439806736/ | Hideto KOBAYASHI | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0184.jpg,train,public,open_images,6fdbfc2c41e926ea.jpg,oi-StephaneMignon,,https://www.flickr.com/photos/topsteph53/8179532656 | Stephane Mignon | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0185.jpg,train,public,open_images,6fe345b106b20990.jpg,oi-HobbiesonaBudget,,https://www.flickr.com/photos/62030038@N02/8430922568 | Hobbies on a Budget | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0186.jpg,train,public,open_images,7037ea6657fd616a.jpg,oi-SteveSnodgrass,,https://www.flickr.com/photos/stevensnodgrass/4702240058 | Steve Snodgrass | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0187.jpg,train,public,open_images,7347254e6c98ea25.jpg,oi-IwanGabovitch,,https://www.flickr.com/photos/qubodup/11522902794 | Iwan Gabovitch | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0188.jpg,train,public,open_images,74f128f6f53dc5f8.jpg,oi-JenniferBoyer,,https://www.flickr.com/photos/jenniferboyer/2556022115 | Jennifer Boyer | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0189.jpg,train,public,open_images,7748c1a164e026a1.jpg,oi-RyoChijiiwa,,https://www.flickr.com/photos/ryochijiiwa/6423199651 | Ryo Chijiiwa | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0190.jpg,valid,public,open_images,77601f77b9ed0111.jpg,oi-TatsuoYamashita,,https://www.flickr.com/photos/yto/3907035246 | Tatsuo Yamashita | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0191.jpg,train,public,open_images,79222c929e1ff38c.jpg,oi-MikeHaller,,https://www.flickr.com/photos/mhaller1979/10501474185/ | Mike Haller | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0192.jpg,valid,public,open_images,7993922619fb8ff6.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/14978497872 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0193.jpg,train,public,open_images,79b8a886b84d80b8.jpg,oi-EmilyMay,,https://www.flickr.com/photos/emilysnuffer/14399092511 | Emily May | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0194.jpg,train,public,open_images,7dbf44081cd9f979.jpg,oi-JanusSandsgaard,,https://www.flickr.com/photos/janus_sandsgaard/5434131502 | Janus Sandsgaard | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0195.jpg,train,public,open_images,7eb99084c09fb442.jpg,oi-UmbertoBrayj,,https://www.flickr.com/photos/ubrayj02/3007022500 | Umberto Brayj | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0196.jpg,train,public,open_images,85343eff8c0ed9a1.jpg,oi-ErinSingleton,,https://www.flickr.com/photos/erins/10900850236 | Erin Singleton | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0197.jpg,train,public,open_images,8abe387edad1ab14.jpg,oi-BeatriceMurch,,https://www.flickr.com/photos/blmurch/149423679 | Beatrice Murch | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0198.jpg,train,public,open_images,8d0d595aec540909.jpg,oi-MaviVillatoro,,https://www.flickr.com/photos/maviloca/3968021641 | Mavi Villatoro | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0199.jpg,train,public,open_images,8f1e133cebde2760.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3926221092 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0200.jpg,train,public,open_images,92471bb88ebf0908.jpg,oi-ChristopherJones,,https://www.flickr.com/photos/85149963@N00/33568398 | Christopher Jones | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0201.jpg,train,public,open_images,92bdf5fd13c7d6a6.jpg,oi-JosepMaRosell,,https://www.flickr.com/photos/batega/1467019878 | Josep Ma. Rosell | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0202.jpg,train,public,open_images,96f329e042e6adaf.jpg,oi-SteveJohnson,,https://www.flickr.com/photos/artbystevejohnson/5069609357 | Steve Johnson | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,1
+open_images_0203.jpg,valid,public,open_images,9784ca505160fdda.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/7643138514/ | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0204.jpg,train,public,open_images,9b8f1317cbf4cedf.jpg,oi-cottonbutt,,https://www.flickr.com/photos/cottonbutt/54251088 | cottonbutt | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0205.jpg,train,public,open_images,9c77ebb5885049a6.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/5725310149 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0206.jpg,train,public,open_images,9da3e10c5b31dc2e.jpg,oi-missellyrh,,https://www.flickr.com/photos/missellyrh/8681904076 | missellyrh | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0207.jpg,train,public,open_images,9f6b636776334d29.jpg,oi-evanpcordes,,https://www.flickr.com/photos/pheezy/13418775144 | evan p. cordes | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0208.jpg,train,public,open_images,a1e71b6f03468bcd.jpg,oi-RyanMcFarland,,https://www.flickr.com/photos/zieak/3220020166 | Ryan McFarland | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0209.jpg,train,public,open_images,a2538e3dd78f7286.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/5725289023 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0210.jpg,train,public,open_images,a4acc79e6782b65f.jpg,oi-MikeMcCune,,https://www.flickr.com/photos/mccun934/14166241248 | Mike McCune | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0211.jpg,train,public,open_images,a4b3c9edcdc6c655.jpg,oi-MajaDumat,,https://www.flickr.com/photos/blumenbiene/4798273701 | Maja Dumat | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0212.jpg,train,public,open_images,a7858df284e98c0e.jpg,oi-JuliaM,,https://www.flickr.com/photos/128509828@N02/15605196198 | Julia M | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0213.jpg,train,public,open_images,a90f18e86011dcaf.jpg,oi-BrianTurner,,https://www.flickr.com/photos/60588258@N00/4045738930 | Brian Turner | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0214.jpg,train,public,open_images,ab2b126b311cf7da.jpg,oi-WindellOskay,,https://www.flickr.com/photos/oskay/4662260707 | Windell Oskay | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0215.jpg,train,public,open_images,abaf829f82c2bc00.jpg,oi-MaciejWojnicki,,https://www.flickr.com/photos/mananasoko/9128540789 | Maciej Wojnicki | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0216.jpg,train,public,open_images,ac82ce747492ab46.jpg,oi-AbiPorter,,https://www.flickr.com/photos/vanillaandlaceblog/5945470744 | Abi Porter | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0217.jpg,train,public,open_images,ad08e77de95303eb.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/5725834972 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0218.jpg,train,public,open_images,b0827048fbad94ce.jpg,oi-othree,,https://www.flickr.com/photos/othree/6294326753 | othree | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0219.jpg,train,public,open_images,b1320f34e1c0e753.jpg,oi-MaeganTintari,,https://www.flickr.com/photos/lovemaegan/5009705856 | Maegan Tintari | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0220.jpg,train,public,open_images,b4857b9441c3a190.jpg,oi-KopenlabKopenlab,,https://www.flickr.com/photos/kopenlab/14784366685 | Kopenlab Kopenlab | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0221.jpg,train,public,open_images,b825b5d6df659de2.jpg,oi-Cirofono,,https://www.flickr.com/photos/ciroduran/2320353398 | Cirofono | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0222.jpg,train,public,open_images,bd41f25d4d629bac.jpg,oi-MattJoyce,,https://www.flickr.com/photos/openfly/9337346909 | Matt Joyce | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0223.jpg,train,public,open_images,bd8754e9f55bf9bf.jpg,oi-linasmith,,https://www.flickr.com/photos/linasmith/3994273442 | lina smith | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0224.jpg,train,public,open_images,bec9f30867253ccc.jpg,oi-jbraine,,https://www.flickr.com/photos/jbraine/2665743068 | jbraine | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0225.jpg,train,public,open_images,c009abba25bb982f.jpg,oi-grantlairdjr,,https://www.flickr.com/photos/grantlairdjr/5745585426 | grantlairdjr | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0226.jpg,train,public,open_images,c11045823beffb57.jpg,oi-sarahmckenzie11,,https://www.flickr.com/photos/47353545@N07/4361175986/ | sarah.mckenzie11 | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0227.jpg,valid,public,open_images,c475ab94bad4240d.jpg,oi-LenoreEdman,,https://www.flickr.com/photos/lenore-m/4095158198 | Lenore Edman | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0228.jpg,train,public,open_images,c57f59aef782b167.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3926228844 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0229.jpg,train,public,open_images,c82db4f9d8522fd1.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/3925447671 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0230.jpg,valid,public,open_images,caf8917ce44331e5.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/15377446535 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0231.jpg,valid,public,open_images,cb5ccdebc29f1a37.jpg,oi-LenoreEdman,,https://www.flickr.com/photos/lenore-m/312319112 | Lenore Edman | https://creativecommons.org/licenses/by/2.0/,single_class,0,2,0
+open_images_0232.jpg,train,public,open_images,ce9cc03ed8e83a4b.jpg,oi-DavidSantaolalla,,https://www.flickr.com/photos/santaolalla/16258258739 | David Santaolalla | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0233.jpg,train,public,open_images,cef1fac750ca3cf9.jpg,oi-RobbySchulze,,https://www.flickr.com/photos/robby_schulze/6120883716 | Robby Schulze | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0234.jpg,train,public,open_images,d0197a85a0319322.jpg,oi-AlistairMarshall,,https://www.flickr.com/photos/thatscottishengineer/2494484080 | Alistair Marshall | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0235.jpg,train,public,open_images,d0e9861f02944b9e.jpg,oi-BiancaMoraes,,https://www.flickr.com/photos/twobee/8258299248 | Bianca Moraes | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0236.jpg,train,public,open_images,d74f1cf160521665.jpg,oi-caesararum,,https://www.flickr.com/photos/29707865@N05/3313412223/ | caesararum | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0237.jpg,train,public,open_images,d8b21c7c18b9e21f.jpg,oi-AslakRaanes,,https://www.flickr.com/photos/aslakr/8338453222 | Aslak Raanes | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0238.jpg,train,public,open_images,de0300147d7298b0.jpg,oi-RyanMcFarland,,https://www.flickr.com/photos/zieak/476438619 | Ryan McFarland | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0239.jpg,valid,public,open_images,de98caaefed79b83.jpg,oi-TatsuoYamashita,,https://www.flickr.com/photos/yto/4269336256 | Tatsuo Yamashita | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0240.jpg,train,public,open_images,deecb6496c9d8edf.jpg,oi-katiehargrave,,https://www.flickr.com/photos/khargrav/5443354052 | katie hargrave | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0241.jpg,train,public,open_images,e31e03ec3ca0e331.jpg,oi-PhilandPamGradwelltobe,,https://www.flickr.com/photos/philandpam/2159439835 | Phil and Pam Gradwell (to be) | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0242.jpg,train,public,open_images,e3bfb71bef1818af.jpg,oi-trebomb,,https://www.flickr.com/photos/13988857@N00/5930282564 | trebomb | https://creativecommons.org/licenses/by/2.0/,single_class,0,0,2
+open_images_0243.jpg,train,public,open_images,e82cbf4e4e8a567f.jpg,oi-RubbermaidProducts,,https://www.flickr.com/photos/rubbermaid/5926340736 | Rubbermaid Products | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0244.jpg,train,public,open_images,e988661f446c28e1.jpg,oi-DavidMellis,,https://www.flickr.com/photos/mellis/6221411918 | David Mellis | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0245.jpg,train,public,open_images,ed4cffda1e9c8662.jpg,oi-HomeSpotHQ,,https://www.flickr.com/photos/86639298@N02/8559707469 | HomeSpot HQ | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0246.jpg,train,public,open_images,ed618636668f75ec.jpg,oi-EmilyMay,,https://www.flickr.com/photos/emilysnuffer/8406356293/ | Emily May | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0247.jpg,valid,public,open_images,f014a4a5907d926c.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/15190772450/ | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0248.jpg,train,public,open_images,f400ea37019c825f.jpg,oi-MarkHunter,,https://www.flickr.com/photos/toolstop/4403211039 | Mark Hunter | https://creativecommons.org/licenses/by/2.0/,single_class,2,0,0
+open_images_0249.jpg,valid,public,open_images,f4fc517e591b669b.jpg,oi-LenoreEdman,,https://www.flickr.com/photos/lenore-m/7736897534 | Lenore Edman | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0250.jpg,valid,public,open_images,f6c9acfe4187210c.jpg,oi-GenevaVanderzeilapairandaspare,,https://www.flickr.com/photos/66755335@N05/8196801722 | Geneva Vanderzeil apairandasparediy.com | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0251.jpg,train,public,open_images,f71efbbf67cc3ff5.jpg,oi-AnniinaRutanen,,https://www.flickr.com/photos/ansqu/3250625017 | Anniina Rutanen | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0252.jpg,train,public,open_images,f79cb0bfd8807f2a.jpg,oi-LinaMon,,https://www.flickr.com/photos/linamon/3273789531 | LinaMon | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0253.jpg,train,public,open_images,f9154eea53114701.jpg,oi-CarolPyles,,https://www.flickr.com/photos/cpyles/10866048103 | Carol Pyles | https://creativecommons.org/licenses/by/2.0/,single_class,0,1,0
+open_images_0254.jpg,train,public,open_images,fbd7bd8192e07b92.jpg,oi-PhilGwinn,,https://www.flickr.com/photos/pegwinn/3557472376 | Phil Gwinn | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+open_images_0255.jpg,train,public,open_images,feff821c241e2fff.jpg,oi-GordonWatt,,https://www.flickr.com/photos/gordon_watt/21250694268 | Gordon Watt | https://creativecommons.org/licenses/by/2.0/,single_class,1,0,0
+practicas_0256.jpg,train,public,practicas,Drill-117_jpg.rf.a7478bba17536cd58b21fe6bf185e732.jpg,pr-18,,,single_class,1,0,0
+practicas_0257.jpg,train,public,practicas,Drill-121_jpg.rf.8335fc3b4c6adfec9ab14de1465c0f0e.jpg,pr-23,,,single_class,1,0,0
+practicas_0258.jpg,train,public,practicas,Drill-125_jpg.rf.89deda37242c0f578169a3b1a62eee36.jpg,pr-27,,,single_class,1,0,0
+practicas_0259.jpg,train,public,practicas,Drill-128_jpg.rf.e6f5ab997c9e5627003e3fe46a0229a3.jpg,pr-30,,,single_class,1,0,0
+practicas_0260.jpg,train,public,practicas,Drill-130_jpg.rf.062e235aab043777bfe0830313e1c0a1.jpg,pr-33,,,single_class,1,0,0
+practicas_0261.jpg,train,public,practicas,Drill-138_jpg.rf.4bce0c2fb73a0fc821d0bcb4badb71aa.jpg,pr-41,,,single_class,1,0,0
+practicas_0262.jpg,train,public,practicas,Drill-173_jpg.rf.65842758225529273e561a920bf3ab6a.jpg,pr-80,,,single_class,1,0,0
+practicas_0263.jpg,train,public,practicas,Drill-177_jpg.rf.64daa8d0ba890fd09a07f2ef0bb525ae.jpg,pr-84,,,single_class,1,0,0
+practicas_0264.jpg,train,public,practicas,Drill-185_jpg.rf.15ac9de0ddaa69fe3671ca7360404628.jpg,pr-93,,,single_class,1,0,0
+practicas_0265.jpg,train,public,practicas,Drill-188_jpg.rf.5f8876325a73d6e7e52fe958a272e365.jpg,pr-96,,,single_class,1,0,0
+practicas_0266.jpg,train,public,practicas,Drill-189_jpg.rf.4478c0a11f0ba0d7e120448c7fad435a.jpg,pr-97,,,single_class,1,0,0
+tool_monitoring_0267.jpg,train,public,tool_monitoring,20261012_171151_jpg.rf.58cefc88ca95940fb2a64f8938fa1c8b.jpg,tm-scene,,,single_class,0,1,0
+tool_monitoring_0268.jpg,train,public,tool_monitoring,20261012_171618_jpg.rf.7a9af082e815397e1d44439f5467b872.jpg,tm-scene,,,single_class,0,1,0
+tool_monitoring_0269.jpg,train,public,tool_monitoring,20261012_172207_jpg.rf.333873b2451c0178b8054e0a169a3ab9.jpg,tm-scene,,,single_class,0,1,0
+tool_monitoring_0270.jpg,train,public,tool_monitoring,20261012_172359_jpg.rf.c28b300eaef6e34797da0e50e52c494a.jpg,tm-scene,,,single_class,0,1,0
+tool_monitoring_0271.jpg,train,public,tool_monitoring,20261012_172431_jpg.rf.87dee64b914c975dcfb6318ea1c32381.jpg,tm-scene,,,single_class,0,1,0
+tool_monitoring_0272.jpg,train,public,tool_monitoring,20261012_172451_jpg.rf.409d3990d0b6a28436ef75878efb6b3c.jpg,tm-scene,,,single_class,0,1,0
+working_tool_0273.jpg,train,public,working_tool,18_png.rf.e2ce42a35954322d7d2231fdc586a951.jpg,wt-18_png,,,single_class,0,1,0
+working_tool_0274.jpg,train,public,working_tool,IMG_2261_MOV-0021_jpg.rf.c9f22074542a60e6537d9a87afe14a40.jpg,wt-IMG_2261,,,single_class,0,0,3
+working_tool_0275.jpg,train,public,working_tool,IMG_2261_MOV-0034_jpg.rf.e5b44475d19048c551f0de9251ba4545.jpg,wt-IMG_2261,,,single_class,0,1,0
+working_tool_0276.jpg,train,public,working_tool,IMG_2261_MOV-0035_jpg.rf.c7cc230fe44b220e926918cbc16f053e.jpg,wt-IMG_2261,,,single_class,0,1,0
+working_tool_0277.jpg,train,public,working_tool,IMG_2261_MOV-0036_jpg.rf.5f3cee85a71c07abd58e1d9d145acfe5.jpg,wt-IMG_2261,,,single_class,0,1,0
+working_tool_0278.jpg,train,public,working_tool,IMG_2316_MOV-0009_jpg.rf.4e70c89ba8ad18a9fbd4eaa3d89c6a38.jpg,wt-IMG_2316,,,single_class,0,1,0
+working_tool_0279.jpg,train,public,working_tool,IMG_2316_MOV-0010_jpg.rf.b67f72035ac0d06298c5e6eba6cf6009.jpg,wt-IMG_2316,,,single_class,0,1,0
+working_tool_0280.jpg,train,public,working_tool,IMG_2316_MOV-0020_jpg.rf.c3704d90e063ffee1a79b22a3cafa807.jpg,wt-IMG_2316,,,single_class,0,0,3
+working_tool_0281.jpg,train,public,working_tool,IMG_2317_MOV-0013_jpg.rf.cdbf691cc6145db2f011277abb3724aa.jpg,wt-IMG_2317,,,single_class,0,1,0
+working_tool_0282.jpg,train,public,working_tool,IMG_2317_MOV-0015_jpg.rf.4e76c9210bb62eabb2c8faa6e7e7dd7c.jpg,wt-IMG_2317,,,single_class,0,1,0
+working_tool_0283.jpg,train,public,working_tool,IMG_2317_MOV-0016_jpg.rf.1dccc9cdaad05253958a4261a9558577.jpg,wt-IMG_2317,,,single_class,0,1,0
+working_tool_0284.jpg,train,public,working_tool,IMG_2317_MOV-0018_jpg.rf.f9b718993f1da09a84aa11adf193b0f0.jpg,wt-IMG_2317,,,single_class,0,1,0
+working_tool_0285.jpg,valid,public,working_tool,IMG_2318_MOV-0010_jpg.rf.3713400f4ce469a16f07eb6bfa4b74a8.jpg,wt-IMG_2318,,,single_class,0,1,0
+working_tool_0286.jpg,valid,public,working_tool,IMG_2318_MOV-0011_jpg.rf.a9de91c23566761019a189744bd679b4.jpg,wt-IMG_2318,,,single_class,0,1,0
+working_tool_0287.jpg,valid,public,working_tool,IMG_2318_MOV-0014_jpg.rf.bc78b1c199baad3c1baf4c6fe582521c.jpg,wt-IMG_2318,,,single_class,0,1,0
+working_tool_0288.jpg,valid,public,working_tool,IMG_2318_MOV-0018_jpg.rf.d334fe886268b884f53c962a8ad30bd3.jpg,wt-IMG_2318,,,single_class,0,1,0
+working_tool_0289.jpg,valid,public,working_tool,IMG_2318_MOV-0025_jpg.rf.1073a25b70c99af69587b3d5e280a6d3.jpg,wt-IMG_2318,,,single_class,0,0,3
+working_tool_0290.jpg,train,public,working_tool,IMG_2321_pdf_page_1_png.rf.dbbefe8f5b9b5f88eaeef5e6a9c501b7.jpg,wt-IMG_2321,,,multi_class,0,1,3
+working_tool_0291.jpg,train,public,working_tool,IMG_2323_pdf_page_1_png.rf.88b1e198efe4c28bdcfd384467b47883.jpg,wt-IMG_2323,,,multi_class,0,1,3
+working_tool_0292.jpg,train,public,working_tool,IMG_2324_pdf_page_1_png.rf.55197226fd52bbf8ddd8160c1d2c1c57.jpg,wt-IMG_2324,,,multi_class,0,1,3
+working_tool_0293.jpg,train,public,working_tool,IMG_2326_pdf_page_1_png.rf.82ba7acf5362cbd28f2df9eac7f3f2fb.jpg,wt-IMG_2326,,,multi_class,0,1,3
+working_tool_0294.jpg,train,public,working_tool,IMG_2328_pdf_page_1_png.rf.56df76c492811017cb58a322f5699a7a.jpg,wt-IMG_2328,,,multi_class,0,1,3
+working_tool_0295.jpg,valid,public,working_tool,IMG_2329_MOV-0000_jpg.rf.8986092b2441a1d931718f8f2805c410.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0296.jpg,valid,public,working_tool,IMG_2329_MOV-0020_jpg.rf.694e0af526f188c2b3805538a7580b7a.jpg,wt-IMG_2329,,,single_class,0,1,0
+working_tool_0297.jpg,valid,public,working_tool,IMG_2329_MOV-0025_jpg.rf.31a077289cdabf67e146fad892b0f3d5.jpg,wt-IMG_2329,,,single_class,0,0,3
+working_tool_0298.jpg,valid,public,working_tool,IMG_2329_MOV-0029_jpg.rf.862abc6d7e2da1aacc79dcc68d53759e.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0299.jpg,valid,public,working_tool,IMG_2329_MOV-0033_jpg.rf.477c4c6f6dd106ff6a29db19069be9f5.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0300.jpg,valid,public,working_tool,IMG_2329_MOV-0043_jpg.rf.3939c27acc4f1d549cf73cdd6bd9a811.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0301.jpg,valid,public,working_tool,IMG_2329_MOV-0046_jpg.rf.fbb229a42bb02237fc103ac6f5f93443.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0302.jpg,valid,public,working_tool,IMG_2329_MOV-0057_jpg.rf.c5a6b460d5f1828a273c062f0f26247a.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0303.jpg,valid,public,working_tool,IMG_2329_MOV-0060_jpg.rf.64775669d71d548af23eff93c8e05a79.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0304.jpg,valid,public,working_tool,IMG_2329_MOV-0065_jpg.rf.773cc9686c3afb7493912eacb81a1082.jpg,wt-IMG_2329,,,multi_class,0,1,3
+working_tool_0305.jpg,valid,public,working_tool,IMG_2334_MOV-0000_jpg.rf.0e38b618606712c71c62b529dd8fb613.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0306.jpg,valid,public,working_tool,IMG_2334_MOV-0003_jpg.rf.1446a089a5c79a88949953dffa75015b.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0307.jpg,valid,public,working_tool,IMG_2334_MOV-0004_jpg.rf.8985a85878411c5519f38a4bd85e2422.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0308.jpg,valid,public,working_tool,IMG_2334_MOV-0005_jpg.rf.3b0a71814ec6b629daa16f0f05169d11.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0309.jpg,valid,public,working_tool,IMG_2334_MOV-0006_jpg.rf.7dbb30a065c7e82b4f0916ccb3f68472.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0310.jpg,valid,public,working_tool,IMG_2334_MOV-0007_jpg.rf.9eb366238e4cc9b86f16cbe6fcbecc47.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0311.jpg,valid,public,working_tool,IMG_2334_MOV-0008_jpg.rf.517cd5253ade3e04dfd89555daef9e96.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0312.jpg,valid,public,working_tool,IMG_2334_MOV-0009_jpg.rf.5f271572eb666ece05da1439cbeddac2.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0313.jpg,valid,public,working_tool,IMG_2334_MOV-0017_jpg.rf.e3088dfede9c9bf1a5457445047b455c.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0314.jpg,valid,public,working_tool,IMG_2334_MOV-0018_jpg.rf.2c0fd5e42e89ad8502ce80f5ee516085.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0315.jpg,valid,public,working_tool,IMG_2334_MOV-0019_jpg.rf.1df380f89f187f15f1753ba84731497b.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0316.jpg,valid,public,working_tool,IMG_2334_MOV-0020_jpg.rf.1596ab0fc6570653a101009fdf5586d5.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0317.jpg,valid,public,working_tool,IMG_2334_MOV-0021_jpg.rf.e10be175302f2fdfd6b7e30ae16bfe85.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0318.jpg,valid,public,working_tool,IMG_2334_MOV-0022_jpg.rf.3ba629cfce1dd9cc3718e9abbfc41d64.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0319.jpg,valid,public,working_tool,IMG_2334_MOV-0023_jpg.rf.6183e1f490ba6f28f505016fe5935ac6.jpg,wt-IMG_2334,,,single_class,1,0,0
+working_tool_0320.jpg,train,public,working_tool,IMG_2335_MOV-0000_jpg.rf.4f6d0574e960acc6b51cbfbeb8e3c7fd.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0321.jpg,train,public,working_tool,IMG_2335_MOV-0002_jpg.rf.84f6337d04f3c9f90d539f0697cc4e3b.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0322.jpg,train,public,working_tool,IMG_2335_MOV-0003_jpg.rf.5165f4fcab91e5e1bcc47663e5cc1ea0.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0323.jpg,train,public,working_tool,IMG_2335_MOV-0004_jpg.rf.9a3a2e9adcca1852e4e5ca61f3ce562a.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0324.jpg,train,public,working_tool,IMG_2335_MOV-0005_jpg.rf.0c2e07e88b934263a191db3408bb7800.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0325.jpg,train,public,working_tool,IMG_2335_MOV-0006_jpg.rf.2d4bc982937540fbb9f0524b1fb0b212.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0326.jpg,train,public,working_tool,IMG_2335_MOV-0007_jpg.rf.6ab176977e4ecbd2807c8146d2b8e1e1.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0327.jpg,train,public,working_tool,IMG_2335_MOV-0008_jpg.rf.44b1e649ec25f25a195ce2a655e97b44.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0328.jpg,train,public,working_tool,IMG_2335_MOV-0009_jpg.rf.5e5edf3ad9348b501f16b23ab8c2050e.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0329.jpg,train,public,working_tool,IMG_2335_MOV-0010_jpg.rf.a180eaef452d7ad458b1dbaf3f6d2aaf.jpg,wt-IMG_2335,,,single_class,1,0,0
+working_tool_0330.jpg,valid,public,working_tool,IMG_2336_MOV-0000_jpg.rf.bf626a8ccc5c31e262099a5a82555fec.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0331.jpg,valid,public,working_tool,IMG_2336_MOV-0001_jpg.rf.3dcb4a090d67935913d2d754f0b218b0.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0332.jpg,valid,public,working_tool,IMG_2336_MOV-0002_jpg.rf.bfe778cb22f29a040b742f1b7158c31b.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0333.jpg,valid,public,working_tool,IMG_2336_MOV-0003_jpg.rf.68b4224849d0ddbd30b4ac3e98cc94d1.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0334.jpg,valid,public,working_tool,IMG_2336_MOV-0004_jpg.rf.a5831b9fd85d4d8b105d2e9bf59d80a3.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0335.jpg,valid,public,working_tool,IMG_2336_MOV-0005_jpg.rf.ed07f1b5c866d7af087b6565cf1d2e4c.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0336.jpg,valid,public,working_tool,IMG_2336_MOV-0006_jpg.rf.a36daa05b235cf319319c323abb4a8a0.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0337.jpg,valid,public,working_tool,IMG_2336_MOV-0007_jpg.rf.d95e2fa67ae9ea5f4d335e60b1340b80.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0338.jpg,valid,public,working_tool,IMG_2336_MOV-0008_jpg.rf.93269c8406c4a97e0c052b8649e64809.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0339.jpg,valid,public,working_tool,IMG_2336_MOV-0009_jpg.rf.ff5759b31d462bb162d4773e4b6d8146.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0340.jpg,valid,public,working_tool,IMG_2336_MOV-0010_jpg.rf.2e80f315da1551d800146eeb8eabb5b9.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0341.jpg,valid,public,working_tool,IMG_2336_MOV-0011_jpg.rf.09b65dd9b33edf1bd295f07ce9bb394e.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0342.jpg,valid,public,working_tool,IMG_2336_MOV-0012_jpg.rf.bd246db3e916ae0178ab938379713448.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0343.jpg,valid,public,working_tool,IMG_2336_MOV-0015_jpg.rf.1ed80e0df0475a6d0160dce1d6a19930.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0344.jpg,valid,public,working_tool,IMG_2336_MOV-0017_jpg.rf.35e3cfc66609cd339a49938cbb521cbf.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0345.jpg,valid,public,working_tool,IMG_2336_MOV-0018_jpg.rf.8cf64e09aa808184b1e1c0a1cc397706.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0346.jpg,valid,public,working_tool,IMG_2336_MOV-0019_jpg.rf.f87bb2ed5d96a8bff8cedb461c974f1a.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0347.jpg,valid,public,working_tool,IMG_2336_MOV-0020_jpg.rf.d73d5fe8522718dde506fc4e00e19f5c.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0348.jpg,valid,public,working_tool,IMG_2336_MOV-0021_jpg.rf.9d7319050a1ec2070f5728d9584d7f94.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0349.jpg,valid,public,working_tool,IMG_2336_MOV-0022_jpg.rf.4b76cd0eacaae2cf1f99c69e91111e2c.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0350.jpg,valid,public,working_tool,IMG_2336_MOV-0023_jpg.rf.4834d44945563ff273022215e7eb1e14.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0351.jpg,valid,public,working_tool,IMG_2336_MOV-0024_jpg.rf.ecc5465d6520fedbf9c47ff96583fce0.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0352.jpg,valid,public,working_tool,IMG_2336_MOV-0025_jpg.rf.41792a054004764ce44eeec180f61354.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0353.jpg,valid,public,working_tool,IMG_2336_MOV-0026_jpg.rf.46410b5982fc6dddeb7ef81025ce3841.jpg,wt-IMG_2336,,,single_class,1,0,0
+working_tool_0354.jpg,train,public,working_tool,IMG_2349_MOV-0004_jpg.rf.0cf5e17652a7d4b0b825aa5d508d2df0.jpg,wt-IMG_2349,,,multi_class,1,0,3
+working_tool_0355.jpg,train,public,working_tool,IMG_2349_MOV-0015_jpg.rf.6b875bac66d6000d7dff56b836122e1b.jpg,wt-IMG_2349,,,multi_class,1,0,3
+working_tool_0356.jpg,train,public,working_tool,IMG_2349_MOV-0022_jpg.rf.8698f229ad086665648798c2855491d9.jpg,wt-IMG_2349,,,multi_class,1,0,3
+working_tool_0357.jpg,train,public,working_tool,IMG_2349_MOV-0029_jpg.rf.bc0354c2808ef62547341d9d5d62f694.jpg,wt-IMG_2349,,,multi_class,1,0,3
+working_tool_0358.jpg,train,public,working_tool,IMG_2349_MOV-0037_jpg.rf.8b48a199e070f8fb8099daa99c5ad39d.jpg,wt-IMG_2349,,,multi_class,1,0,3
+working_tool_0359.jpg,train,public,working_tool,IMG_2349_MOV-0049_jpg.rf.65d475d10e8cc914a9eb842e6bc76c7a.jpg,wt-IMG_2349,,,multi_class,1,0,3
+working_tool_0360.jpg,train,public,working_tool,IMG_2353_MOV-0000_jpg.rf.700213c7b6ea4180d7f7a3a210d0a1a1.jpg,wt-IMG_2353,,,multi_class,1,0,3
+working_tool_0361.jpg,train,public,working_tool,IMG_2353_MOV-0012_jpg.rf.7f5ede9def45fb8f7f0137e7a8594eb4.jpg,wt-IMG_2353,,,multi_class,1,0,3
+working_tool_0362.jpg,train,public,working_tool,IMG_2353_MOV-0020_jpg.rf.7285b407dd32d1e679818581a3776808.jpg,wt-IMG_2353,,,multi_class,1,0,3
+working_tool_0363.jpg,train,public,working_tool,IMG_2354_pdf_page_1_png.rf.62372544fca9853fab80cf9476fa8e02.jpg,wt-IMG_2354,,,multi_class,1,0,3
+working_tool_0364.jpg,train,public,working_tool,IMG_2357_MOV-0006_jpg.rf.f15a851a3d93d2acd82bd44ade24e40d.jpg,wt-IMG_2357,,,multi_class,1,0,3
+working_tool_0365.jpg,train,public,working_tool,IMG_2357_MOV-0012_jpg.rf.0078119fe4ddab6dff0e6aac58d8b800.jpg,wt-IMG_2357,,,multi_class,1,0,3
+working_tool_0366.jpg,train,public,working_tool,IMG_2357_MOV-0021_jpg.rf.ac40009ce7d1626eda06dd12aee49b1c.jpg,wt-IMG_2357,,,multi_class,1,0,3
+working_tool_0367.jpg,train,public,working_tool,IMG_2357_MOV-0027_jpg.rf.3c010f806aed6c477e2adb124d6f18b9.jpg,wt-IMG_2357,,,multi_class,1,0,3
