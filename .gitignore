@@ -53,3 +53,4 @@ Demo_Video.mp4
 
 # Packaging helpers and local copies of dataset.zip
 *.zip
+!/dataset.zip

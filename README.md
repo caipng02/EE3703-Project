@@ -54,8 +54,8 @@ Python 3.10 or newer. Install [PyTorch](https://pytorch.org/get-started/locally/
 python -m pip install -r requirements.txt
 ```
 
-Unpack `dataset.zip` from the [data branch](https://github.com/caipng02/EE3703-Project/tree/data/model_training_handoff)
-into `dataset/` (git-ignored). On Intel Macs PyTorch stops at 2.2, which needs
+Unpack `dataset.zip` (in the repository root; built by Person 1's pipeline on the data branch) into `dataset/`
+(git-ignored), e.g. `unzip dataset.zip`. On Colab, upload it to the notebook when asked. On Intel Macs PyTorch stops at 2.2, which needs
 `python -m pip install "numpy<2" "opencv-python-headless<4.11"`.
 
 ## Usage
