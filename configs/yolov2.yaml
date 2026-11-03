@@ -1,0 +1,15 @@
+# YOLOv2 / ResNet-18 training settings. Override any value with
+#   python -m workbench_detection train --run runs/<name> --set key=value
+pretrained_backbone: true   # ImageNet weights for the backbone only; the detection pipeline is from scratch
+augmentation: full          # full: proposal section 2.5; light: flip, brightness, contrast
+mosaic: 0.5                 # probability of a 4-image mosaic per training sample
+original_weight: 1.0        # raise (e.g. 2.0) if original validation photos score far below public ones
+batch: 8
+lr: 0.001
+weight_decay: 0.0001
+epochs: 60                  # maximum (proposal section 4.2)
+patience: 10                # early stopping on validation AP50
+lr_schedule: cosine         # warmup, then cosine decay to 5% of lr
+warmup_epochs: 3
+ema: true                   # validate and save averaged weights
+objectness_prior: true      # objectness starts at 1% instead of 50%

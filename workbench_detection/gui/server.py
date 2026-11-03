@@ -1,8 +1,8 @@
-"""Local web interface for the group's own YOLO and Faster R-CNN detectors."""
+"""Local web interface: upload a photo, choose YOLOv2 or Faster R-CNN, see boxes, labels and confidences.
 
-from __future__ import annotations
+Start it with python -m workbench_detection gui --run runs/<name>. Images are processed in memory only.
+"""
 
-import argparse
 import base64
 import binascii
 import importlib
@@ -98,7 +98,7 @@ class ModelRegistry:
         self.lock = threading.Lock()
         for key in MODEL_NAMES:
             try:
-                self.modules[key] = importlib.import_module(f"adapters.{key}")
+                self.modules[key] = importlib.import_module(f".adapters.{key}", __package__)
             except Exception:
                 logging.exception("Could not import %s adapter", key)
                 self.errors[key] = "Adapter could not load. Check the server terminal."
@@ -200,12 +200,13 @@ def create_server(port=8765, registry=None):
     return server
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", type=int, default=8765)
-    args = parser.parse_args()
+def serve(port=8765, *, run=None, device="cpu"):
+    """Connect the YOLOv2 adapter to a run's best checkpoint (if given) and serve until Ctrl+C."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    with create_server(args.port) as server:
+    if run is not None:
+        from .adapters import yolo
+        yolo.connect(run, device)
+    with create_server(port) as server:
         print(f"\nWorkbench is ready: http://127.0.0.1:{server.server_port}\n", flush=True)
         try:
             server.serve_forever()

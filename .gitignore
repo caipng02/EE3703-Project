@@ -26,26 +26,15 @@ env/
 Thumbs.db
 Desktop.ini
 
-# Evaluator-generated output and temporary folders
-person4_*_outputs/
-person4_test_tmp/
-person4_prepared/
+# Experiment runs: checkpoints, protocols, reports (python -m workbench_detection ...)
+runs/
+prepared/
 tmp/
-outputs/
-*_results/
 
-# Raw datasets: keep documentation and small, deliberately exported JSON manifests
-data/*
-!data/README.md
-!data/*.json
-!data/*.csv
+# The unpacked dataset (distributed as dataset.zip on the data branch)
+dataset/
 
 # Checkpoints and model binaries
-models/*
-!models/README.md
-!models/*.json
-!models/*.yaml
-!models/*.yml
 *.pt
 *.pth
 *.ckpt
@@ -55,15 +44,12 @@ models/*
 *.safetensors
 *.npz
 
-# Runtime outputs: track only documentation by default
-results/*
-!results/README.md
-
 # Local source documents and packaged submissions (add selected documents deliberately)
 Proposal_Project_Group_05.pdf
 Report_Project_Group_05.pdf
 Demo_Project_Group_05.zip
 Demo_Video.mp4
 
-# GitHub Desktop / packaging helpers
+
+# Packaging helpers and local copies of dataset.zip
 *.zip

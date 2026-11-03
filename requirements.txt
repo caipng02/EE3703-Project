@@ -1,5 +1,8 @@
-# Install PyTorch separately for CPU or CUDA using https://pytorch.org/get-started/locally/
+# Install PyTorch and torchvision first for your CPU or GPU: https://pytorch.org/get-started/locally/
+# (torchvision provides the ImageNet ResNet-18 weights for the backbone)
 numpy
 Pillow>=10.4,<13
 opencv-python-headless
 pycocotools
+pyyaml
+matplotlib
