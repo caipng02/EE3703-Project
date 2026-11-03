@@ -54,3 +54,7 @@ Demo_Video.mp4
 # Packaging helpers and local copies of dataset.zip
 *.zip
 !/dataset.zip
+
+# Local working files: raw photos, dataset build archive and reference documents
+_archive/
+docs/

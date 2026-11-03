@@ -122,7 +122,7 @@ This notebook is the whole YOLOv2 project in reading order:
 once, at the end, after retraining on train + validation with the frozen settings.
 
 **Running it.** On Colab: Runtime → Change runtime type → **T4 GPU**, then Runtime → Run all, and upload
-`dataset_fixed.zip` when asked. Every setting is in the *Settings* cell of section 1. The final test is off until
+`dataset.zip` (from the repository root) when asked. Every setting is in the *Settings* cell of section 1. The final test is off until
 `RUN_FINAL_TEST = True`.
 """))
 
@@ -165,9 +165,11 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IN_COLAB = "google.colab" in sys.modules
 if not (DATASET / "manifest.csv").is_file() and IN_COLAB:
     from google.colab import files
-    if not Path("/content/dataset_fixed.zip").is_file():
-        print("Select dataset_fixed.zip"); files.upload()
-    subprocess.run(["unzip", "-q", "-o", "/content/dataset_fixed.zip", "-d", "/content"], check=True)
+    archives = [path for path in (Path("/content/dataset.zip"), Path("/content/dataset_fixed.zip")) if path.is_file()]
+    if not archives:
+        print("Select the dataset zip (dataset.zip from the repository)")
+        archives = [Path(name).resolve() for name in files.upload()]  # saved under the uploaded file's own name
+    subprocess.run(["unzip", "-q", "-o", str(archives[0]), "-d", "/content"], check=True)
 assert (DATASET / "manifest.csv").is_file(), f"Dataset not found at {DATASET}"
 if SAVE_TO_DRIVE and IN_COLAB:
     from google.colab import drive

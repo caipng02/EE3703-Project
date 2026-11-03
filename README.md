@@ -83,7 +83,7 @@ runs/v1/report/validation/metrics.txt, examples/    metrics, figures and example
 runs/v1/work/final_train/, report/test/             after the test command
 ```
 
-Training on Colab: open `YOLO_Project.ipynb`, choose a T4 GPU, Run all, and upload `dataset_fixed.zip` when asked.
+Training on Colab: open `YOLO_Project.ipynb`, choose a T4 GPU, Run all, and upload `dataset.zip` when asked.
 After changing the package, rebuild the notebook with `python tools/build_notebook.py`.
 
 ### Adding Faster R-CNN
