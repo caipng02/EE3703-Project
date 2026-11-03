@@ -18,9 +18,10 @@ def main():
     parser.add_argument("--results", type=Path, default=ROOT / "results" / "yolov2",
                         help="Report metrics and figures.")
     parser.add_argument("--checkpoint", type=Path, help="Reuse a compatible development checkpoint and skip training.")
-    parser.add_argument("--epochs", type=int, default=60)
-    parser.add_argument("--batch", type=int, default=4)
-    parser.add_argument("--lr", type=float, default=0.001)
+    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--patience", type=int, default=10, help="Stop after this many epochs without higher validation AP50.")
+    parser.add_argument("--batch", type=int, default=2)
+    parser.add_argument("--lr", type=float, default=0.0001)
     parser.add_argument("--weight-decay", type=float, default=0.0001)
     parser.add_argument("--device", help="Defaults to CUDA if available, otherwise CPU.")
     parser.add_argument("--ap-score-floor", type=float, default=0.001)
@@ -28,6 +29,8 @@ def main():
     parser.add_argument("--final-test", action="store_true", help="After validation, retrain with the selected settings and score the held-out test.")
     parser.add_argument("--gui", action="store_true", help="Serve the trained model and selected settings locally after evaluation.")
     args = parser.parse_args()
+    if args.patience < 1:
+        parser.error("--patience must be at least 1.")
     if args.inspect and (args.checkpoint or args.final_test or args.gui):
         parser.error("--inspect runs independently of checkpoints, final testing, and the GUI.")
     if args.epochs < 1 or args.batch < 1 or args.lr <= 0 or args.weight_decay < 0:

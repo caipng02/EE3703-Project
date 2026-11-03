@@ -90,7 +90,7 @@ python main.py --dataset-root dataset --inspect --batch 2
 python main.py --dataset-root dataset
 ```
 
-The inspection uses eight training images and saves figures under `outputs/yolov2/inspection`. The second command trains one development configuration and selects settings on validation. Use `--device cuda` in a CUDA-enabled environment or `--checkpoint path/to/best.pt` to reuse a compatible development checkpoint.
+The inspection uses eight training images and saves figures under `outputs/yolov2/inspection`. The second command trains Person 3's 3 November baseline profile and selects settings on validation. It defaults to 10 epochs, batch size 2, learning rate 0.0001, and weight decay 0.0001. It uses horizontal flips, brightness and contrast augmentation and class-weighted sampling. Validation uses the shared COCO AP scorer with a 0.001 score floor. Use `--epochs 20 --patience 20` for a full 20-epoch development run. Use `--device cuda` in a CUDA-enabled environment or `--checkpoint path/to/best.pt` to reuse a compatible development checkpoint.
 
 Metrics print in the terminal and are saved with figures under `results/yolov2/`. Checkpoints and the validation protocol go under `outputs/yolov2/`. Use fresh `--results` and `--output` paths for separate runs.
 

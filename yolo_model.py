@@ -1,4 +1,4 @@
-"""Model, loss and postprocessing from Person 3’s yolov2_person3.py."""
+"""Model, loss and postprocessing from Person 3’s 2026-11-03 baseline archive (core definitions verified identical)."""
 
 import random
 import numpy as np

@@ -5,15 +5,32 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageOps
 from torch.utils.data import DataLoader, Subset
 
 import person4_evaluation as scoring
 from workbench_data import ToolDataset, boxes_to_yolo, collate, make_train_sampler, normalize
-from yolo_model import CLASSES, YOLOv2ResNet18, cluster_anchors, postprocess, seed_all, yolo_loss
+from yolo_model import CLASSES, SEED, YOLOv2ResNet18, cluster_anchors, postprocess, seed_all, yolo_loss
 
 MODEL_NAME = "YOLOv2"
 SCORE_FLOOR = 0.001
+BASELINE_EPOCHS = 10
+BASELINE_BATCH = 2
+BASELINE_LR = 0.0001
+BASELINE_WEIGHT_DECAY = 0.0001
+BASELINE_PROFILE = "person3_baseline_20261103"
+
+
+def baseline_augmentation(image, boxes, labels, rng):
+    """Person 3's flip, brightness and contrast on Person 1's saved canvas."""
+    photo = Image.fromarray(image)
+    if rng.random() < 0.5:
+        photo = ImageOps.mirror(photo)
+        boxes = boxes.copy()
+        boxes[:, [0, 2]] = image.shape[1] - boxes[:, [2, 0]]
+    photo = ImageEnhance.Brightness(photo).enhance(rng.uniform(0.8, 1.2))
+    photo = ImageEnhance.Contrast(photo).enhance(rng.uniform(0.8, 1.2))
+    return np.asarray(photo), boxes, labels
 
 
 def targets_for_loss(targets):
@@ -56,8 +73,8 @@ def predict_uploaded_image(model, image, device, confidence, nms_iou, letterbox,
     return detections
 
 
-def make_loader(dataset, batch, training=False):
-    sampler = make_train_sampler(dataset) if training else None
+def make_loader(dataset, batch, training=False, *, generator=None):
+    sampler = make_train_sampler(dataset, generator=generator) if training else None
     return DataLoader(dataset, batch_size=batch, sampler=sampler, collate_fn=collate)
 
 
@@ -109,7 +126,7 @@ def train(args, device):
     args.output.mkdir(parents=True, exist_ok=True)
     final = args.final_from is not None
     protocol = None
-    train_set = ToolDataset(args.dataset_root, "trainval" if final else "train", augment=True)
+    profile = BASELINE_PROFILE
     if final:
         source = torch.load(args.final_from, map_location="cpu", weights_only=True)
         protocol = scoring.load_json(args.protocol)
@@ -119,21 +136,31 @@ def train(args, device):
             raise ValueError("Use the validation checkpoint recorded in the selected protocol.")
         if tuple(source["classes"]) != CLASSES or source.get("stage") != "validation":
             raise ValueError("Final retraining requires a compatible validation checkpoint.")
+        profile = source["config"].get("training_profile", "person1_augmentation")
         anchors, epochs = source["anchors"], source["best_epoch"]
         batch, lr, weight_decay = (source["config"][key] for key in ("batch", "lr", "weight_decay"))
     else:
         if args.epochs is None:
             raise ValueError("Specify --epochs for a development training run.")
-        anchors, epochs = anchors_from_training(train_set), args.epochs
+        epochs = args.epochs
         batch, lr, weight_decay = args.batch, args.lr, args.weight_decay
-    loader = make_loader(train_set, batch, training=True)
+    augmentation = {"augmentation_fn": baseline_augmentation} if profile == BASELINE_PROFILE else {}
+    train_set = ToolDataset(args.dataset_root, "trainval" if final else "train", augment=True, **augmentation)
     if not final:
+        anchors = anchors_from_training(train_set)
+    generator = torch.Generator().manual_seed(SEED) if profile == BASELINE_PROFILE else None
+    loader = make_loader(train_set, batch, training=True, generator=generator)
+    print(f"Training profile: {profile} | epochs={epochs} | batch={batch} | lr={lr:g} | weight_decay={weight_decay:g}", flush=True)
+    if not final:
+        ap_config = scoring.EvaluationConfig(ap_backend="coco", ap_score_floor=args.ap_score_floor)
+        print(f"Checkpoint selection: COCO AP50 | score floor={ap_config.ap_score_floor:g} | NMS IoU=0.50", flush=True)
         gt = scoring.load_person1_ground_truth(args.dataset_root, "valid")
         valid = make_loader(ToolDataset(args.dataset_root, "valid"), batch)
     model = YOLOv2ResNet18(anchors).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
     checkpoint = args.output / "best.pt"
+    patience = getattr(args, "patience", 10)
     best, best_epoch, history = -1, 0, []
     for epoch in range(1, epochs + 1):
         model.train()
@@ -142,8 +169,8 @@ def train(args, device):
         row = {"epoch": epoch, "train_loss": total / len(loader.dataset)}
         if not final:
             exports, validation_loss = collect_predictions(
-                model, valid, gt, device, [0.50], checkpoint, SCORE_FLOOR, loss=True)
-            aps, _ = scoring.coco_ap(gt, exports[0], scoring.EvaluationConfig(ap_score_floor=SCORE_FLOOR))
+                model, valid, gt, device, [0.50], checkpoint, ap_config.ap_score_floor, loss=True)
+            aps, _ = scoring.coco_ap(gt, exports[0], ap_config)
             score = sum(ap["0.50"] for ap in aps) / len(aps)
             row.update(val_loss=validation_loss, val_map50=score)
         history.append(row)
@@ -153,10 +180,12 @@ def train(args, device):
                 best = score
             best_epoch = epoch
             torch.save({"state_dict": model.state_dict(), "anchors": anchors, "classes": CLASSES,
-                        "config": {"batch": batch, "lr": lr, "weight_decay": weight_decay},
+                        "config": {"batch": batch, "lr": lr, "weight_decay": weight_decay,
+                                   "training_profile": profile},
                         "best_epoch": epoch, "stage": "final" if final else "validation",
                         "protocol": protocol}, checkpoint)
-        if not final and epoch - best_epoch >= 10:
+        if not final and epoch - best_epoch >= patience:
+            print(f"Early stopping: validation AP50 did not improve for {patience} epochs.", flush=True)
             break
     scoring.plot_training_history(history, args.results or args.output, MODEL_NAME)
     print(f"Checkpoint: {checkpoint.resolve()} (epoch {best_epoch})")
@@ -237,11 +266,12 @@ def main():
     parser.add_argument("--dataset-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, help="Checkpoint, protocol, or inspection folder.")
     parser.add_argument("--results", type=Path, help="Report metrics and figures folder.")
-    parser.add_argument("--batch", type=int, default=4)
+    parser.add_argument("--batch", type=int, default=BASELINE_BATCH)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
-    parser.add_argument("--epochs", type=int)
-    parser.add_argument("--lr", type=float, default=0.001)
-    parser.add_argument("--weight-decay", type=float, default=0.0001)
+    parser.add_argument("--epochs", type=int, default=BASELINE_EPOCHS)
+    parser.add_argument("--patience", type=int, default=10, help="Stop after this many epochs without higher validation AP50.")
+    parser.add_argument("--lr", type=float, default=BASELINE_LR)
+    parser.add_argument("--weight-decay", type=float, default=BASELINE_WEIGHT_DECAY)
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--final-from", type=Path)
     parser.add_argument("--split", choices=["valid", "test"], default="valid")
@@ -249,6 +279,8 @@ def main():
     parser.add_argument("--ap-score-floor", type=float, default=SCORE_FLOOR)
     parser.add_argument("--benchmark", action="store_true")
     args = parser.parse_args()
+    if args.patience < 1:
+        parser.error("--patience must be at least 1.")
     if args.batch < 1 or (args.epochs is not None and args.epochs < 1):
         parser.error("Batch size and epoch count must be positive.")
     if args.final_from and (args.mode != "train" or not args.protocol):

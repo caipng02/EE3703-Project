@@ -207,11 +207,12 @@ def boxes_to_yolo(boxes: torch.Tensor) -> torch.Tensor:
 class ToolDataset(Dataset):
     """Images and targets for one split; see the table above for the target format."""
 
-    def __init__(self, root: str | Path, split: str, augment: bool = False, mosaic_p: float = 0.0, origin: str | None = None, allow_test: bool = False) -> None:
+    def __init__(self, root: str | Path, split: str, augment: bool = False, mosaic_p: float = 0.0, origin: str | None = None, allow_test: bool = False, *, augmentation_fn=augment) -> None:
         if split == "test" and not allow_test:
             raise ValueError("The test split is locked; pass allow_test=True only for the final evaluation.")
         if split not in TRAINING_SPLITS and (augment or mosaic_p):
             raise ValueError("Augmentation is for training data only.")
+        self.augmentation_fn = augmentation_fn
         self.root, self.split, self.augment, self.mosaic_p = Path(root), split, augment, mosaic_p
         # "trainval" is only for the final retrain, after validation has fixed every setting.
         folders = ("train", "valid") if split == "trainval" else (split,)
@@ -243,9 +244,9 @@ class ToolDataset(Dataset):
             rng = random.Random(int(torch.randint(0, 2**31 - 1, (1,)).item()))
             if rng.random() < self.mosaic_p:
                 others = rng.choices(range(len(self)), weights=self.sample_weights, k=3)
-                image, boxes, labels = mosaic([augment(*self._raw(i), rng) for i in [index, *others]], rng)
+                image, boxes, labels = mosaic([self.augmentation_fn(*self._raw(i), rng) for i in [index, *others]], rng)
             else:
-                image, boxes, labels = augment(image, boxes, labels, rng)
+                image, boxes, labels = self.augmentation_fn(image, boxes, labels, rng)
         return normalize(image), {
             "boxes": torch.as_tensor(boxes, dtype=torch.float32).reshape(-1, 4),
             "labels": torch.as_tensor(labels, dtype=torch.int64),
