@@ -1,0 +1,12 @@
+{
+  "classes": [
+    "drill",
+    "scissor",
+    "screwdriver"
+  ],
+  "splits": {
+    "train": [],
+    "val": [],
+    "test": []
+  }
+}
