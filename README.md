@@ -80,3 +80,18 @@ Deliver a **12-minute group presentation followed by 5 minutes of Q&A**.
 Every group member must present a section. Cover the problem and dataset,
 architectures and implementation, results, visual evidence, and error analysis.
 The class starts at **2:00 PM**, when the presentation order is drawn.
+
+## Run the integrated YOLOv2 workflow
+
+Use Python 3.11 or newer. Install [PyTorch](https://pytorch.org/get-started/locally/) for your CPU or CUDA environment, then run `python -m pip install -r requirements.txt`. Download and unpack `dataset.zip` from the [data branch handoff](https://github.com/caipng02/EE3703-Project/tree/data/model_training_handoff). The dataset directory must contain `manifest.csv`.
+
+```sh
+python main.py --dataset-root dataset --inspect --batch 2
+python main.py --dataset-root dataset
+```
+
+The inspection uses eight training images and saves figures under `outputs/yolov2/inspection`. The second command trains one development configuration and selects settings on validation. Use `--device cuda` in a CUDA-enabled environment or `--checkpoint path/to/best.pt` to reuse a compatible development checkpoint.
+
+Metrics print in the terminal and are saved with figures under `results/yolov2/`. Checkpoints and the validation protocol go under `outputs/yolov2/`. Use fresh `--results` and `--output` paths for separate runs.
+
+After choosing a configuration on validation, add `--final-test` for fixed-setting retraining and evaluation on the 50 held-out originals. Add `--gui` to launch the local browser demo at http://127.0.0.1:8765 using the resulting YOLOv2 checkpoint. Faster R-CNN requires its own model adapter and checkpoint.

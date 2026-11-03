@@ -1,0 +1,5 @@
+# Install PyTorch separately for CPU or CUDA using https://pytorch.org/get-started/locally/
+numpy
+Pillow>=10.4,<13
+opencv-python-headless
+pycocotools

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24634d">
+  <title>Workbench Tool Detection</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Workbench Tool Detection home"><img src="/favicon.svg" width="36" height="36" alt=""><h1>Workbench Tool Detection</h1></a>
+    <span class="project-label">EE3703 <span>/</span> GROUP 05</span>
+  </header>
+  <main>
+    <div class="workspace">
+      <aside class="controls">
+        <section class="control-section">
+          <div class="section-title"><span class="step">01</span><h2>Add an image</h2></div>
+          <div class="dropzone" id="dropzone">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
+            <p id="uploadTitle">Drop your image here</p>
+            <span class="upload-hint">or choose one from your files</span>
+            <button class="upload-button" id="uploadButton" type="button">Upload image <span aria-hidden="true">↗</span></button>
+            <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+            <span class="file-types">JPG, PNG or WebP · Up to 12 MB</span>
+          </div>
+          <div id="fileInfo" class="file-info" hidden><span class="file-symbol" aria-hidden="true">▧</span><span><strong id="fileName"></strong><small id="fileDetails"></small></span><button id="clearButton" class="icon-button" aria-label="Remove image" type="button">×</button></div>
+        </section>
+        <section class="control-section model-section">
+          <div class="section-title"><span class="step">02</span><h2>Choose a detector</h2></div>
+          <fieldset class="model-options"><legend class="sr-only">Detection model</legend>
+            <label class="model-card"><input type="radio" name="model" value="yolo" checked><span class="model-copy"><strong>YOLO <span class="model-tag">ONE STAGE</span></strong><small>A single pass through the scene</small><span class="model-status" id="status-yolo">Checking connection…</span></span><span class="radio-mark"></span></label>
+            <label class="model-card"><input type="radio" name="model" value="faster_rcnn"><span class="model-copy"><strong>Faster R-CNN <span class="model-tag">TWO STAGE</span></strong><small>Propose regions, then detect</small><span class="model-status" id="status-faster_rcnn">Checking connection…</span></span><span class="radio-mark"></span></label>
+          </fieldset>
+        </section>
+        <button id="detectButton" class="detect-button" type="button" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg><span id="detectLabel">Run detection</span><span class="button-arrow" aria-hidden="true">→</span></button>
+      </aside>
+      <section class="viewer" aria-label="Image workspace">
+        <div class="viewer-toolbar"><span class="viewer-title"><span class="live-square"></span> Image workspace</span><div class="view-tabs" role="group" aria-label="Image view"><button id="originalTab" class="view-tab active" aria-pressed="true" type="button">Original</button><button id="detectionsTab" class="view-tab" aria-pressed="false" type="button" disabled>Detections</button></div></div>
+        <div class="image-stage" id="imageStage">
+          <div class="empty-state" id="emptyState">
+            <div class="scene-illustration" aria-hidden="true"><svg viewBox="0 0 200 142" fill="none"><rect x="24" y="12" width="152" height="114" rx="8" fill="#f8faf7" stroke="#d9e1d7"/><path d="M24 96h152M52 126v8m96-8v8" stroke="#d9e1d7" stroke-width="2"/><path d="M52 43V32h12m72 0h12v11M52 79v11h12m72 0h12V79" stroke="#93af95" stroke-width="2" stroke-linecap="round"/><path d="m80 58 18-13 21 13-21 13-18-13Z" fill="#dbe8d6" stroke="#9db59a"/><path d="M80 58v19l18 13V71m21-13v19L98 90" fill="#e8eee3"/><path d="M80 58v19l18 13 21-13V58M98 71v19" stroke="#9db59a"/><circle cx="155" cy="24" r="3" fill="#a2b99a"/></svg></div>
+            <p>Your image and detections will appear<br>in this workspace.</p>
+          </div>
+          <canvas id="imageCanvas" aria-label="Uploaded image and detection bounding boxes" hidden></canvas>
+          <div class="loading-overlay" id="loadingOverlay" hidden><span class="spinner"></span><strong id="loadingText">Finding your tools…</strong><span>This may take a moment.</span></div>
+        </div>
+        <div class="viewer-footer"><span id="imageMeta">No image selected</span><span id="viewMeta">Ready when you are</span></div>
+      </section>
+    </div>
+    <div id="errorMessage" class="error-message" role="alert" hidden></div>
+    <section class="results-section" aria-label="Detection results">
+      <div class="results-header"><div><p class="eyebrow">THE FINDINGS</p><h2>Tools in the scene <span id="resultCount">—</span></h2></div></div>
+      <div class="results-body" id="resultsBody"><p class="results-placeholder">Run a detector to see the tools, confidence scores and inference time.</p></div>
+    </section>
+    <footer class="page-footer"><span class="class-legend"><i class="drill-dot"></i>Drill<i class="scissor-dot"></i>Scissors<i class="screwdriver-dot"></i>Screwdriver</span></footer>
+    <p class="sr-only" id="announcement" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>

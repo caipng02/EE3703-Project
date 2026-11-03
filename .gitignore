@@ -1,0 +1,69 @@
+# Python and local environments
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Local credentials and configuration
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Evaluator-generated output and temporary folders
+person4_*_outputs/
+person4_test_tmp/
+person4_prepared/
+tmp/
+outputs/
+*_results/
+
+# Raw datasets: keep documentation and small, deliberately exported JSON manifests
+data/*
+!data/README.md
+!data/*.json
+!data/*.csv
+
+# Checkpoints and model binaries
+models/*
+!models/README.md
+!models/*.json
+!models/*.yaml
+!models/*.yml
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+*.hdf5
+*.safetensors
+*.npz
+
+# Runtime outputs: track only documentation by default
+results/*
+!results/README.md
+
+# Local source documents and packaged submissions (add selected documents deliberately)
+Proposal_Project_Group_05.pdf
+Report_Project_Group_05.pdf
+Demo_Project_Group_05.zip
+Demo_Video.mp4
+
+# GitHub Desktop / packaging helpers
+*.zip
