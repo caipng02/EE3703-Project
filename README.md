@@ -30,6 +30,7 @@ dataset/ ──► data ──────────► models ─────
 | `workbench_detection/visualize.py` | Figures used by the notebook |
 | `configs/yolov2.yaml` | The recommended training settings |
 | `tools/build_notebook.py` | Regenerates `YOLO_Project.ipynb` from the package |
+| `tools/build_faster_rcnn_notebook.py` | Regenerates `FasterRCNN_Project.ipynb` from the package |
 | `tests/` | GUI and upload checks |
 | `experiments/` | Person 3's earlier standalone YOLOv2 experiments (round 2.2) |
 
@@ -86,12 +87,13 @@ runs/v1/work/final_train/, report/test/             after the test command
 Training on Colab: open `YOLO_Project.ipynb`, choose a T4 GPU, Run all, and upload `dataset.zip` when asked.
 After changing the package, rebuild the notebook with `python tools/build_notebook.py`.
 
-### Adding Faster R-CNN
+### Faster R-CNN
 
-Faster R-CNN plugs into the same data pipeline, evaluation protocol and GUI: export predictions in the
-evaluator's format (pixel xyxy boxes on the 640 canvas, class IDs 0–2, scores, `model_family: faster_rcnn`),
-score them with `score --project-protocol`, and implement `predict(image)` in
-`workbench_detection/gui/adapters/faster_rcnn.py` like the YOLOv2 adapter.
+Person 2's Faster R-CNN (`models/faster_rcnn.py`, from the `RCNN_debug` branch) uses the same data pipeline,
+evaluation protocol and GUI. `engine/faster_rcnn.py` trains it, picks the RPN NMS IoU (0.50 / 0.70) and operating
+confidence on validation, and runs the single final test, as for YOLOv2. Train it on Colab with
+`FasterRCNN_Project.ipynb`, and rebuild that notebook with `python tools/build_faster_rcnn_notebook.py`. To serve both
+models in the GUI: `python -m workbench_detection gui --run runs/<yolo run> --frcnn-run runs/<frcnn run>`.
 
 ## Team
 

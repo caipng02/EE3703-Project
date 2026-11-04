@@ -8,6 +8,7 @@ Stages: train (or search), validation, final_train, test.
 """
 
 import csv
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -166,8 +167,18 @@ def validate(checkpoint, dataset_root, run, device, batch=8):
 
 
 def final_test(run, dataset_root, device, batch=None):
-    """Retrain on train + validation with the frozen settings, then evaluate once on the 50 test originals."""
-    run.ensure_fresh("final_train", "test")
+    """Retrain on train + validation with the frozen settings, then evaluate once on the 50 test originals.
+
+    A finished test (report/test/result.json) is never repeated. An interrupted one, stopped before its result was
+    saved, is cleared and restarted; its retrain had not been evaluated, so nothing was learned from the test.
+    """
+    if run.result("test") is not None:
+        raise FileExistsError(f"{run.root} already has a final test result; it is never repeated.")
+    for stage in ("final_train", "test"):
+        for folder in (run.work(stage), run.report(stage)):
+            if folder.exists():
+                print(f"Clearing an interrupted final test: {folder}", flush=True)
+                shutil.rmtree(folder)
     if batch is None:  # evaluate with the run's own batch size, as validation did
         batch = TrainConfig.from_dict(torch.load(run.development_checkpoint(), map_location="cpu",
                                                  weights_only=True)["config"]).batch

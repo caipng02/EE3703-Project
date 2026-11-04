@@ -11,50 +11,16 @@ the third-party imports into the setup cell.
     python tools/build_notebook.py
 """
 
-import ast
-import json
-import re
-from pathlib import Path
+from notebook_parts import ROOT, check_and_write, code, md, read_modules
 
-ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = ROOT / "workbench_detection"
 OUTPUT = ROOT / "YOLO_Project.ipynb"
-RELATIVE_IMPORT = re.compile(r"^\s*from \.+[\w.]* import [^(]*$")
-
-
-# --- reading the package -------------------------------------------------------------------------
-
-def read_module(relative):
-    """Return (import lines, {section name: code}) for one module."""
-    text = (PACKAGE / relative).read_text(encoding="utf-8")
-    parts = re.split(r"^# %% (\S+)\n", text, flags=re.M)
-    header, sections = parts[0], dict(zip(parts[1::2], parts[2::2]))
-    tree = ast.parse(header)
-    imports = []
-    for node in tree.body:
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            if isinstance(node, ast.ImportFrom) and node.level:
-                continue
-            imports.append(ast.get_source_segment(header, node))
-        elif not (isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)):
-            raise ValueError(f"{relative}: move code above the first '# %%' section into a section")
-    cleaned = {}
-    for name, code in sections.items():
-        lines = [line for line in code.splitlines() if not RELATIVE_IMPORT.match(line)]
-        cleaned[name] = "\n".join(lines).strip("\n")
-    return imports, cleaned
 
 
 MODULES = ["config.py", "boxes.py", "data/dataset.py", "data/transforms.py", "data/augment.py", "data/sampling.py",
            "models/yolov2.py", "models/loss.py", "evaluation/records.py", "evaluation/metrics.py",
            "evaluation/protocol.py", "evaluation/report.py", "evaluation/benchmark.py", "engine/predictor.py",
            "engine/trainer.py", "engine/search.py", "engine/workflow.py", "visualize.py"]
-SOURCES = {}
-IMPORTS = []
-for module in MODULES:
-    module_imports, sections = read_module(module)
-    IMPORTS += [line for line in module_imports if line not in IMPORTS]
-    SOURCES[module] = sections
+SOURCES, IMPORTS = read_modules(MODULES)
 USED = set()
 
 
@@ -64,15 +30,6 @@ def source(module, section):
 
 
 # --- notebook cells ------------------------------------------------------------------------------
-
-def md(text):
-    return {"cell_type": "markdown", "metadata": {}, "source": text.strip("\n").splitlines(True)}
-
-
-def code(text):
-    return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [],
-            "source": text.strip("\n").splitlines(True)}
-
 
 def src(module, *sections, title=None):
     """A code cell with package source, headed by the file it comes from."""
@@ -154,6 +111,7 @@ are good, set `RUN_FINAL_TEST = True` (with `RESUME_RUN` if the session has rest
 """))
 add(code("""
 CONFIG = TrainConfig()     # pretrained backbone, full augmentation + mosaic 0.5, batch 8, lr 1e-3, cosine, EMA
+# Screwdriver experiment (validation only): TrainConfig(anchors=9, objectness_target="one")
 SEARCH_CONFIGS = 0         # proposal section 4.2: 8 trains eight lr x weight decay x batch combinations
 RUN_FINAL_TEST = False     # the single evaluation on the 50 original test photos; leave False until settings are final
 SAVE_TO_DRIVE = True       # on Colab, keep the run in Google Drive in case the session disconnects
@@ -254,7 +212,9 @@ add(md("""
 **Architecture.** A ResNet-18 backbone (7×7 stem, four stages of basic residual blocks) produces stride-16 and
 stride-32 features. The YOLOv2 head adds two 3×3 convolutions on the deep features, reorganizes the stride-16
 features onto the 20 × 20 grid (passthrough layer) and concatenates both, then predicts for each of the 5 anchors in
-every cell: x, y, w, h offsets, objectness and 3 class scores (5 × 8 = 40 output channels).
+every cell: x, y, w, h offsets, objectness and 3 class scores (5 × 8 = 40 output channels). With `CONFIG.stride = 16`
+the deep features are upsampled onto the 40 × 40 grid of the stride-16 features instead, giving small objects such
+as screwdrivers cells of their own.
 """))
 add(src("models/yolov2.py", "backbone", "detector"))
 add(md("""
@@ -265,15 +225,16 @@ anchors per image, a 50% start makes background errors dominate the first update
 add(src("models/yolov2.py", "initialization"))
 add(md("""
 **Anchors** are the typical box shapes, found by k-means on the training boxes with 1 − IoU as the distance
-(YOLOv2's dimension clusters). Each prediction is an offset from one of them.
+(YOLOv2's dimension clusters). Each prediction is an offset from one of them. YOLOv2 uses 5 (`CONFIG.anchors`);
+more anchors give small, thin screwdrivers shapes of their own.
 """))
 add(src("models/yolov2.py", "anchors"))
 add(src("visualize.py", "model-figures", title="figures"))
 add(code("""
-anchors = anchors_from_dataset(train_set)
+anchors = anchors_from_dataset(train_set, CONFIG.anchors)
 print("Anchors (width, height as fractions of the image):", [tuple(round(float(v), 3) for v in a) for a in anchors])
 plot_anchors(train_set, anchors)
-model = YOLOv2ResNet18(anchors)
+model = YOLOv2ResNet18(anchors, stride=CONFIG.stride)
 parts = {"backbone (stem, s1-s4)": [model.stem, model.s1, model.s2, model.s3, model.s4],
          "YOLOv2 layers (deep, passthrough, head)": [model.deep, model.passthrough, model.head]}
 for name, modules in parts.items():
@@ -293,22 +254,25 @@ add(src("models/yolov2.py", "decoding"))
 add(md("""
 **Loss.** Each object is assigned to the grid cell containing its centre and to the best-matching free anchor there.
 Four terms: location (box offsets), object (objectness of assigned anchors, target = IoU of their predicted box),
-background (objectness of all other anchors) and class (cross-entropy).
+background (objectness of all other anchors) and class (cross-entropy). Because small boxes naturally reach lower
+IoUs, the IoU target pushes small objects towards low confidence; `objectness_target="one"` uses 1 instead.
 """))
 add(src("models/loss.py", "loss"))
 add(code("""
-show_assignment(train_set, scissor_image, anchors)
+show_assignment(train_set, scissor_image, anchors, grid=IMAGE_SIZE // CONFIG.stride)
 images, batch_targets = collate([train_set[i] for i in range(8)])
 for prior in (False, True):
     seed_everything()
-    untrained = YOLOv2ResNet18(anchors)
+    untrained = YOLOv2ResNet18(anchors, stride=CONFIG.stride)
     if prior:
         init_objectness_prior(untrained)
     with torch.no_grad():
-        _, terms = yolo_loss(untrained(images), encode_targets(batch_targets), untrained.anchors)
+        raw = untrained(images)
+        _, terms = yolo_loss(raw, encode_targets(batch_targets), untrained.anchors, objectness_target=CONFIG.objectness_target,
+                             anchors_per_object=CONFIG.anchors_per_object)
     share = terms["background"] / terms["loss"]
     print(f"objectness prior {'on ' if prior else 'off'}: loss {terms['loss']:.1f} | background term {share:.0%} | "
-          f"{terms['assigned']} assigned anchors out of {8 * 5 * 20 * 20}")
+          f"{terms['assigned']} assigned anchors out of {raw[..., 0].numel()}")
 """))
 
 # 6 Evaluation
@@ -348,7 +312,7 @@ learning rate; gradient clipping at norm 10. Validation AP50 is measured every e
 average (EMA) of the weights, which smooths the epoch-to-epoch noise; the best epoch is kept, and training stops
 after 10 epochs without improvement (proposal section 4.2).
 """))
-add(src("engine/trainer.py", "loader", "optimization", "train"))
+add(src("engine/trainer.py", "loader", "schedule", "optimization", "train"))
 add(md("**Hyperparameter search** (proposal section 4.2): random combinations of learning rate {1e-4, 3e-4, 1e-3}, "
        "weight decay {1e-4, 5e-4} and batch size {4, 8}, selected by validation AP50."))
 add(src("engine/search.py", "search"))
@@ -510,24 +474,4 @@ shows (for example missed thin scissors versus background detections); whether o
 ones; and what would improve the detector next.
 """))
 
-unused = {(module, name) for module, sections in SOURCES.items() for name in sections} - USED
-if unused:
-    raise SystemExit(f"Sections not placed in the notebook: {sorted(unused)}")
-defined = {}
-for module, name in USED:
-    for node in ast.parse(SOURCES[module][name]).body:
-        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
-            if node.name in defined:
-                raise SystemExit(f"{node.name} defined in both {defined[node.name]} and {module}")
-            defined[node.name] = module
-
-for number, cell in enumerate(CELLS):  # every code cell must be valid Python (shell lines aside)
-    if cell["cell_type"] == "code":
-        compile("".join(cell["source"]), f"notebook cell {number}", "exec")
-
-notebook = {"cells": CELLS, "nbformat": 4, "nbformat_minor": 0,
-            "metadata": {"accelerator": "GPU", "colab": {"provenance": []},
-                         "kernelspec": {"display_name": "Python 3", "name": "python3"},
-                         "language_info": {"name": "python"}}}
-OUTPUT.write_text(json.dumps(notebook, indent=1) + "\n", encoding="utf-8")
-print(f"Wrote {OUTPUT.name}: {len(CELLS)} cells, {len(USED)} source sections from {len(MODULES)} modules")
+check_and_write(OUTPUT, CELLS, SOURCES, USED)

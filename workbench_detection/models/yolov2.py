@@ -1,7 +1,8 @@
 """YOLOv2 with a ResNet-18 backbone, built from individual PyTorch layers.
 
-Input: (B, 3, 640, 640) normalized images. Output: raw predictions (B, A, 20, 20, 5 + C) for A = 5
-anchors on a 20 x 20 grid (stride 32): per anchor x, y, w, h offsets, objectness and C class scores.
+Input: (B, 3, 640, 640) normalized images. Output: raw predictions (B, A, G, G, 5 + C) for A anchors on a
+G x G grid: per anchor x, y, w, h offsets, objectness and C class scores. G = 20 (stride 32, YOLOv2's
+design) or 40 (stride 16, a finer grid for small objects).
 """
 
 import math
@@ -42,27 +43,35 @@ class BasicBlock(nn.Module):
 class YOLOv2ResNet18(nn.Module):
     """ResNet-18 stages (stem, s1-s4) feed the YOLOv2 head.
 
-    The passthrough layer reorganizes the stride-16 features of s3 into the stride-32 grid
+    Stride 32 (YOLOv2): the passthrough layer reorganizes the stride-16 features of s3 onto the 20 x 20 grid
     (pixel_unshuffle) and concatenates them with the deep features, keeping finer detail for small tools.
+    Stride 16: the deep features are upsampled onto the 40 x 40 grid of s3 instead, so objects smaller than a
+    32-pixel cell get cells of their own. Both feed the same 1280-channel head; it is still one output scale.
     """
 
-    def __init__(self, anchors, classes=len(CLASSES)):
+    def __init__(self, anchors, classes=len(CLASSES), stride=32):
         super().__init__()
+        if stride not in (16, 32):
+            raise ValueError("stride must be 16 or 32")
         self.register_buffer("anchors", anchors.clone().float())  # (A, 2) normalized width, height
-        self.classes = classes
+        self.classes, self.stride = classes, stride
         self.stem = nn.Sequential(nn.Conv2d(3, 64, 7, 2, 3, bias=False), nn.BatchNorm2d(64), nn.ReLU(), nn.MaxPool2d(3, 2, 1))
         self.s1 = nn.Sequential(BasicBlock(64, 64), BasicBlock(64, 64))
         self.s2 = nn.Sequential(BasicBlock(64, 128, 2), BasicBlock(128, 128))
         self.s3 = nn.Sequential(BasicBlock(128, 256, 2), BasicBlock(256, 256))
         self.s4 = nn.Sequential(BasicBlock(256, 512, 2), BasicBlock(512, 512))
         self.deep = nn.Sequential(conv_bn(512, 1024), conv_bn(1024, 1024))
-        self.passthrough = conv_bn(256, 64, 1)
+        self.passthrough = conv_bn(256, 64 if stride == 32 else 256, 1)
         self.head = nn.Sequential(conv_bn(1280, 1024), nn.Conv2d(1024, len(anchors) * (5 + classes), 1))
 
     def forward(self, x):
         fine = self.s3(self.s2(self.s1(self.stem(x))))                  # stride 16, 256 channels
         deep = self.deep(self.s4(fine))                                   # stride 32, 1024 channels
-        route = F.pixel_unshuffle(self.passthrough(fine), 2)              # stride 32, 256 channels
+        if self.stride == 32:
+            route = F.pixel_unshuffle(self.passthrough(fine), 2)          # stride 32, 256 channels
+        else:
+            deep = F.interpolate(deep, scale_factor=2, mode="nearest")    # stride 16, 1024 channels
+            route = self.passthrough(fine)                                # stride 16, 256 channels
         raw = self.head(torch.cat((deep, route), 1))
         b, _, h, w = raw.shape
         return raw.view(b, len(self.anchors), 5 + self.classes, h, w).permute(0, 1, 3, 4, 2).contiguous()
@@ -133,10 +142,10 @@ def cluster_anchors(wh, k=5, seed=SEED):
     return centers[centers.prod(1).argsort()].clamp(min=1 / IMAGE_SIZE)
 
 
-def anchors_from_dataset(dataset):
-    """Anchors from the training split's boxes only (validation and test never influence them)."""
+def anchors_from_dataset(dataset, k=5):
+    """k anchors from the training split's boxes only (validation and test never influence them)."""
     sizes = torch.from_numpy(np.concatenate([boxes[:, 2:] - boxes[:, :2] for boxes in dataset.boxes]))
-    return cluster_anchors(sizes / IMAGE_SIZE)
+    return cluster_anchors(sizes / IMAGE_SIZE, k)
 
 
 # %% decoding

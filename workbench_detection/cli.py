@@ -79,6 +79,7 @@ def main(argv=None):
 
     sub = command("gui", "Browser demo: upload a photo, choose a model, see the detections.")
     sub.add_argument("--run", type=Path, help="Run whose best YOLOv2 checkpoint to serve")
+    sub.add_argument("--frcnn-run", type=Path, help="Run whose best Faster R-CNN checkpoint to serve")
     sub.add_argument("--port", type=int, default=8765)
 
     commands.add_parser("score", help="Score saved prediction JSON files (see score --help).", add_help=False)
@@ -128,7 +129,7 @@ def main(argv=None):
         print(f"Saved to {out.resolve()}")
     elif args.command == "gui":
         from .gui.server import serve
-        serve(args.port, run=args.run, device=device)
+        serve(args.port, run=args.run, frcnn_run=args.frcnn_run, device=device)
     return 0
 
 

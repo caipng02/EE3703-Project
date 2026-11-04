@@ -18,13 +18,17 @@ def encode_targets(targets):
     return [torch.cat((row["labels"].float()[:, None], pixels_to_cxcywh(row["boxes"])), dim=1) for row in targets]
 
 
-def yolo_loss(raw, targets, anchors, ignore_iou=IGNORE_IOU):
+def yolo_loss(raw, targets, anchors, ignore_iou=IGNORE_IOU, objectness_target="iou", anchors_per_object=1):
     """YOLOv2 loss for raw predictions (B, A, H, W, 5 + C) and encoded targets.
 
     Assignment: each object goes to the grid cell containing its centre and to the free anchor whose
-    shape best matches it (larger objects choose first). Terms, summed then divided by the batch size:
+    shape best matches it (larger objects choose first). With anchors_per_object=k, the k best-matching free
+    anchors in that cell all learn the object, so thin objects that fit no single anchor well get more
+    positive examples; NMS removes the duplicate boxes at inference. Terms, summed then divided by the batch size:
       location   BCE on the x, y offsets within the cell + MSE on log(w, h / anchor)
       object     MSE between the objectness of assigned anchors and their predicted box's IoU
+                 (objectness_target="one": and 1, so small objects, whose IoU is naturally lower,
+                 are not pushed towards low confidence)
       background squared objectness of unassigned anchors (except ignored ones)
       class      cross-entropy on assigned anchors
     """
@@ -38,15 +42,16 @@ def yolo_loss(raw, targets, anchors, ignore_iou=IGNORE_IOU):
             cls, x, y, bw, bh = row.tolist()
             ix, iy = min(int(x * w), w - 1), min(int(y * h), h - 1)
             ranking = wh_iou(row[None, 3:5].to(raw.device), anchors).argsort(1, descending=True)[0]
-            slot = next((int(j) for j in ranking if not pos[bi, j, iy, ix]), None)
-            if slot is None:  # every anchor in this cell is already taken
+            slots = [int(j) for j in ranking if not pos[bi, j, iy, ix]][:anchors_per_object]
+            if not slots:  # every anchor in this cell is already taken
                 collisions += 1
                 continue
-            pos[bi, slot, iy, ix] = True
-            target[bi, slot, iy, ix, :2] = raw.new_tensor([x * w - ix, y * h - iy])
-            target[bi, slot, iy, ix, 2:4] = torch.log(row[3:5].to(raw.device) / anchors[slot] + 1e-9)
-            target[bi, slot, iy, ix, 5] = cls
-            assigned_boxes[bi, slot, iy, ix] = row[1:5].to(raw.device)
+            for slot in slots:
+                pos[bi, slot, iy, ix] = True
+                target[bi, slot, iy, ix, :2] = raw.new_tensor([x * w - ix, y * h - iy])
+                target[bi, slot, iy, ix, 2:4] = torch.log(row[3:5].to(raw.device) / anchors[slot] + 1e-9)
+                target[bi, slot, iy, ix, 5] = cls
+                assigned_boxes[bi, slot, iy, ix] = row[1:5].to(raw.device)
     predicted = decode(raw, anchors)
     negative = ~pos
     with torch.no_grad():
@@ -62,7 +67,8 @@ def yolo_loss(raw, targets, anchors, ignore_iou=IGNORE_IOU):
         pp, tt = xywh_to_xyxy(predicted[pos]), xywh_to_xyxy(assigned_boxes[pos])
         inter = (torch.minimum(pp[:, 2:], tt[:, 2:]) - torch.maximum(pp[:, :2], tt[:, :2])).clamp(min=0).prod(1)
         iou = (inter / ((pp[:, 2:] - pp[:, :2]).prod(1) + (tt[:, 2:] - tt[:, :2]).prod(1) - inter + 1e-9)).detach()
-        objectness = F.mse_loss(raw[..., 4][pos].sigmoid(), iou, reduction="sum")
+        goal = iou if objectness_target == "iou" else torch.ones_like(iou)
+        objectness = F.mse_loss(raw[..., 4][pos].sigmoid(), goal, reduction="sum")
         classification = F.cross_entropy(raw[..., 5:][pos], target[..., 5][pos].long(), reduction="sum")
     else:
         location = objectness = classification = zero
@@ -77,11 +83,12 @@ def yolo_loss(raw, targets, anchors, ignore_iou=IGNORE_IOU):
     return loss, details
 
 
-def yolo_loss_on_cpu(raw, targets, anchors):
+def yolo_loss_on_cpu(raw, targets, anchors, objectness_target="iou", anchors_per_object=1):
     """yolo_loss with the target assignment on the CPU; the result returns to raw's device.
 
     The assignment loops object by object, and on a GPU every step would wait for the device. Moving the
     small raw tensor is cheap, gradients still flow back to the model, and the value is unchanged.
     """
-    loss, details = yolo_loss(raw.float().cpu(), encode_targets(targets), anchors.cpu())
+    loss, details = yolo_loss(raw.float().cpu(), encode_targets(targets), anchors.cpu(),
+                              objectness_target=objectness_target, anchors_per_object=anchors_per_object)
     return loss.to(raw.device), details

@@ -200,12 +200,15 @@ def create_server(port=8765, registry=None):
     return server
 
 
-def serve(port=8765, *, run=None, device="cpu"):
-    """Connect the YOLOv2 adapter to a run's best checkpoint (if given) and serve until Ctrl+C."""
+def serve(port=8765, *, run=None, frcnn_run=None, device="cpu"):
+    """Connect each adapter to its run's best checkpoint (if given) and serve until Ctrl+C."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     if run is not None:
         from .adapters import yolo
         yolo.connect(run, device)
+    if frcnn_run is not None:
+        from .adapters import faster_rcnn
+        faster_rcnn.connect(frcnn_run, device)
     with create_server(port) as server:
         print(f"\nWorkbench is ready: http://127.0.0.1:{server.server_port}\n", flush=True)
         try:

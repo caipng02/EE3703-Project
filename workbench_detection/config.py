@@ -46,6 +46,10 @@ class TrainConfig:
     warmup_epochs: float = 3.0         # linear warmup from 1% of lr
     ema: bool = True                   # validate and save an exponential moving average of the weights
     objectness_prior: bool = True      # start objectness at 1% instead of 50%
+    anchors: int = 5                   # k-means anchor shapes per grid cell (YOLOv2 chose 5)
+    objectness_target: str = "iou"     # "iou": IoU of the predicted box (YOLOv2); "one": 1 for every object
+    stride: int = 32                   # output grid: 32 -> 20 x 20 (YOLOv2); 16 -> 40 x 40 for small objects
+    anchors_per_object: int = 1        # anchors trained per object in its cell (YOLOv2: 1, the best-matching one)
 
     def __post_init__(self):
         checks = {
@@ -59,6 +63,10 @@ class TrainConfig:
             "patience": self.patience >= 1,
             "lr_schedule": self.lr_schedule in ("cosine", "constant"),
             "warmup_epochs": self.warmup_epochs >= 0,
+            "anchors": 1 <= self.anchors <= 15,
+            "objectness_target": self.objectness_target in ("iou", "one"),
+            "stride": self.stride in (16, 32),
+            "anchors_per_object": 1 <= self.anchors_per_object <= self.anchors,
         }
         invalid = [name for name, ok in checks.items() if not ok]
         if invalid:

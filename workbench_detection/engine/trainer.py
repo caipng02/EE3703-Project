@@ -34,6 +34,17 @@ def make_loader(dataset, batch, training=False, *, generator=None, original_weig
                       persistent_workers=workers > 0, pin_memory=torch.cuda.is_available())
 
 
+# %% schedule
+def lr_factor(step, total_steps, warmup_steps, schedule):
+    """Linear warmup from 1% of the learning rate, then constant or cosine decay to 5%."""
+    if step < warmup_steps:
+        return 0.01 + 0.99 * step / warmup_steps
+    if schedule == "cosine":
+        progress = min((step - warmup_steps) / max(1, total_steps - warmup_steps), 1.0)
+        return 0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * progress))
+    return 1.0
+
+
 # %% optimization
 class ModelEMA:
     """Exponential moving average of the weights, used for validation and checkpoints.
@@ -60,16 +71,6 @@ class ModelEMA:
                 value.copy_(current[name])
 
 
-def lr_factor(step, total_steps, warmup_steps, schedule):
-    """Linear warmup from 1% of the learning rate, then constant or cosine decay to 5%."""
-    if step < warmup_steps:
-        return 0.01 + 0.99 * step / warmup_steps
-    if schedule == "cosine":
-        progress = min((step - warmup_steps) / max(1, total_steps - warmup_steps), 1.0)
-        return 0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * progress))
-    return 1.0
-
-
 def make_scaler(device):
     """Mixed-precision gradient scaler, active on CUDA only (torch.amp.GradScaler needs PyTorch 2.3+)."""
     enabled = device.type == "cuda"
@@ -78,12 +79,12 @@ def make_scaler(device):
     return torch.cuda.amp.GradScaler(enabled=enabled)
 
 
-def training_step(model, optimizer, images, targets, device, scaler):
+def training_step(model, optimizer, images, targets, device, scaler, objectness_target="iou", anchors_per_object=1):
     """One update: forward in mixed precision on CUDA, loss, backward, gradient clipping at norm 10, step."""
     optimizer.zero_grad(set_to_none=True)
     with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
         raw = model(images.to(device))
-    loss, _ = yolo_loss_on_cpu(raw, targets, model.anchors)
+    loss, _ = yolo_loss_on_cpu(raw, targets, model.anchors, objectness_target, anchors_per_object)
     if not torch.isfinite(loss):
         raise ValueError("Training produced a nonfinite loss.")
     scaler.scale(loss).backward()
@@ -97,7 +98,7 @@ def training_step(model, optimizer, images, targets, device, scaler):
 # %% train
 def build_model(anchors, config):
     """A YOLOv2 model initialized as the configuration says."""
-    model = YOLOv2ResNet18(anchors)
+    model = YOLOv2ResNet18(anchors, stride=config.stride)
     if config.pretrained_backbone:
         print(f"Loaded {load_imagenet_backbone(model)} ImageNet tensors into the ResNet-18 backbone.", flush=True)
     if config.objectness_prior:
@@ -133,7 +134,7 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
     train_set = ToolDataset(dataset_root, "trainval" if final else "train", augment=True,
                             mosaic_p=config.mosaic, augmentation=config.augmentation)
     if not final:
-        anchors = anchors_from_dataset(train_set)
+        anchors = anchors_from_dataset(train_set, config.anchors)
     loader = make_loader(train_set, config.batch, training=True, generator=torch.Generator().manual_seed(SEED),
                          original_weight=config.original_weight)
     print(f"{'Final' if final else 'Development'} training on {len(train_set)} images | {epochs} epochs max | "
@@ -156,7 +157,8 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
         model.train()
         total = 0.0
         for images, targets in loader:
-            total += training_step(model, optimizer, images, targets, device, scaler) * len(targets)
+            total += training_step(model, optimizer, images, targets, device, scaler,
+                                   config.objectness_target, config.anchors_per_object) * len(targets)
             scheduler.step()
             if ema:
                 ema.update(model)
@@ -164,7 +166,8 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
         scored = ema.module if ema else model  # validation and checkpoints use the averaged weights
         if not final:
             exports, validation_loss = YOLOv2Detector(scored, device).export(
-                valid, ground_truth, [0.50], ap_config.ap_score_floor, checkpoint=checkpoint, with_loss=True)
+                valid, ground_truth, [0.50], ap_config.ap_score_floor, checkpoint=checkpoint, with_loss=True,
+                objectness_target=config.objectness_target, anchors_per_object=config.anchors_per_object)
             aps, _ = coco_ap(ground_truth, exports[0], ap_config)
             score = sum(ap["0.50"] for ap in aps) / len(aps)
             row.update(val_loss=validation_loss, val_map50=score)

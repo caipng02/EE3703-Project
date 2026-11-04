@@ -187,6 +187,7 @@ def plot_history(history, title="Training"):
     left.plot(epochs, [row["train_loss"] for row in history], label="train")
     if "val_loss" in history[0]:
         left.plot(epochs, [row["val_loss"] for row in history], label="validation")
+    if "val_map50" in history[0]:
         right.plot(epochs, [row["val_map50"] for row in history], color="#2ca02c")
         best = max(history, key=lambda row: row["val_map50"])
         right.scatter([best["epoch"]], [best["val_map50"]], color="black", zorder=3,

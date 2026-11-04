@@ -21,7 +21,7 @@ def load_checkpoint(path, device):
     checkpoint = torch.load(path, map_location="cpu", weights_only=True)
     if tuple(checkpoint["classes"]) != CLASSES:
         raise ValueError("Checkpoint class order differs from the dataset.")
-    model = YOLOv2ResNet18(checkpoint["anchors"])
+    model = YOLOv2ResNet18(checkpoint["anchors"], stride=checkpoint["config"].get("stride", 32))
     model.load_state_dict(checkpoint["state_dict"])
     return model.to(device).eval(), checkpoint
 
@@ -70,7 +70,8 @@ class YOLOv2Detector:
         return detections
 
     @torch.inference_mode()
-    def export(self, loader, ground_truth, nms_ious, score_floor=AP_SCORE_FLOOR, checkpoint="", with_loss=False):
+    def export(self, loader, ground_truth, nms_ious, score_floor=AP_SCORE_FLOOR, checkpoint="", with_loss=False,
+               objectness_target="iou", anchors_per_object=1):
         """Predictions for a whole split, one export per NMS IoU, in the evaluator's format.
 
         Exports keep every detection above score_floor so AP sees the full precision-recall curve.
@@ -82,7 +83,7 @@ class YOLOv2Detector:
         for images, rows in loader:
             raw = self.model(images.to(self.device)).float()
             if with_loss:
-                batch_loss, _ = yolo_loss_on_cpu(raw, rows, self.model.anchors)
+                batch_loss, _ = yolo_loss_on_cpu(raw, rows, self.model.anchors, objectness_target, anchors_per_object)
                 total_loss += batch_loss.item() * len(rows)
             for iou in nms_ious:
                 collected[iou].extend(self.decode(raw, score_floor, iou))
