@@ -102,7 +102,9 @@ saved with the run and inside each checkpoint, so the final retrain uses exactly
 add(src("config.py", "constants", "train-config"))
 add(md("""
 ### Settings
-The only cell to edit. `TrainConfig()` is the recommended recipe; change fields like `TrainConfig(lr=3e-4)`.
+The only cell to edit. `TrainConfig()` is the selected recipe (development trial 5b): a 40 × 40 output grid, 9 anchors,
+peak learning rate 5e-4 and a 5-epoch warmup. It had the highest validation AP50 of the development trials (0.803);
+the others are recorded in the group's development record. Change fields like `TrainConfig(lr=3e-4)`.
 
 Every stage saves its results in the run folder (Google Drive on Colab) and is skipped when re-run if it has already
 finished. **After a disconnect**, set `RESUME_RUN` to the run folder's name (printed below) and Run all: finished
@@ -110,13 +112,12 @@ training, validation and test are loaded instead of repeated. **For the final te
 are good, set `RUN_FINAL_TEST = True` (with `RESUME_RUN` if the session has restarted) and Run all again.
 """))
 add(code("""
-CONFIG = TrainConfig()     # pretrained backbone, full augmentation + mosaic 0.5, batch 8, lr 1e-3, cosine, EMA
-# Screwdriver experiment (validation only): TrainConfig(anchors=9, objectness_target="one")
+CONFIG = TrainConfig()     # pretrained backbone, 40 x 40 grid, 9 anchors, full augmentation + mosaic 0.5, batch 8, lr 5e-4
 SEARCH_CONFIGS = 0         # proposal section 4.2: 8 trains eight lr x weight decay x batch combinations
-RUN_FINAL_TEST = False     # the single evaluation on the 50 original test photos; leave False until settings are final
+RUN_FINAL_TEST = True      # the single evaluation on the 50 original test photos (run once settings were final)
 SAVE_TO_DRIVE = True       # on Colab, keep the run in Google Drive in case the session disconnects
 DATASET = Path("/content/dataset") if Path("/content").is_dir() else Path("dataset")
-RESUME_RUN = None          # e.g. "yolov2_20261104_2130" to continue an earlier run
+RESUME_RUN = "finegrid2_20261104_0654"  # the selected run; None starts a new one
 RUN_NAME = RESUME_RUN or "yolov2_" + datetime.now().strftime("%Y%m%d_%H%M")
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -210,23 +211,23 @@ Box utilities first: format conversion, IoU and non-maximum suppression, used by
 add(src("boxes.py", "box-ops", "nms"))
 add(md("""
 **Architecture.** A ResNet-18 backbone (7×7 stem, four stages of basic residual blocks) produces stride-16 and
-stride-32 features. The YOLOv2 head adds two 3×3 convolutions on the deep features, reorganizes the stride-16
-features onto the 20 × 20 grid (passthrough layer) and concatenates both, then predicts for each of the 5 anchors in
-every cell: x, y, w, h offsets, objectness and 3 class scores (5 × 8 = 40 output channels). With `CONFIG.stride = 16`
-the deep features are upsampled onto the 40 × 40 grid of the stride-16 features instead, giving small objects such
-as screwdrivers cells of their own.
+stride-32 features. The YOLOv2 head adds two 3×3 convolutions on the deep features. Original YOLOv2 (`stride=32`)
+reorganizes the stride-16 features onto the 20 × 20 grid (passthrough layer). The selected model (`stride=16`)
+instead upsamples the deep features onto the 40 × 40 grid of the stride-16 features, so small objects such as
+screwdrivers get cells of their own. Either way both are concatenated and the head predicts, for each of the 9
+anchors in every cell, x, y, w, h offsets, objectness and 3 class scores (9 × 8 = 72 output channels).
 """))
 add(src("models/yolov2.py", "backbone", "detector"))
 add(md("""
 **Initialization.** The backbone starts from ImageNet weights, copied by name into the hand-built layers; the YOLOv2
-layers start random. The last layer's objectness bias starts at 1% instead of 50%: with about 1.5 objects but 2000
-anchors per image, a 50% start makes background errors dominate the first updates (measured below).
+layers start random. The last layer's objectness bias starts at 1% instead of 50%: with about 1.5 objects but 14,400
+anchors per image (40 × 40 × 9), a 50% start makes background errors dominate the first updates (measured below).
 """))
 add(src("models/yolov2.py", "initialization"))
 add(md("""
 **Anchors** are the typical box shapes, found by k-means on the training boxes with 1 − IoU as the distance
-(YOLOv2's dimension clusters). Each prediction is an offset from one of them. YOLOv2 uses 5 (`CONFIG.anchors`);
-more anchors give small, thin screwdrivers shapes of their own.
+(YOLOv2's dimension clusters). Each prediction is an offset from one of them. YOLOv2 uses 5; the selected model
+uses 9 (`CONFIG.anchors`), which gives small, thin screwdrivers shapes of their own.
 """))
 add(src("models/yolov2.py", "anchors"))
 add(src("visualize.py", "model-figures", title="figures"))
@@ -307,8 +308,8 @@ analysis and the demo, so they all share the same preprocessing, decoding and th
 """))
 add(src("engine/predictor.py", "predictor"))
 add(md("""
-**The training loop.** AdamW with mixed precision on the GPU; a 3-epoch linear warmup, then cosine decay to 5% of the
-learning rate; gradient clipping at norm 10. Validation AP50 is measured every epoch on an exponential moving
+**The training loop.** AdamW with mixed precision on the GPU; a 5-epoch linear warmup to the peak learning rate of
+5e-4, then cosine decay to 5% of it; gradient clipping at norm 10. Validation AP50 is measured every epoch on an exponential moving
 average (EMA) of the weights, which smooths the epoch-to-epoch noise; the best epoch is kept, and training stops
 after 10 epochs without improvement (proposal section 4.2).
 """))
@@ -469,9 +470,23 @@ print(f"\\nRun folder: {RUN.root.resolve()}")
 add(md("""
 ### Conclusions
 
-*To be written from the results above:* how close each class came to its target and why; what the error analysis
-shows (for example missed thin scissors versus background detections); whether original photos score below public
-ones; and what would improve the detector next.
+**Every class beats its target on the test.** Overall AP50 is 0.933 (target 0.70): drill 0.906, scissor 0.943,
+screwdriver 0.950. The detector runs at 41.9 ms per image (23.9 FPS) on a T4.
+
+**The test is well above validation (0.803).** The test holds only the group's own photos. They are new captures
+(no capture group is shared with training), but of the same workbench sets as most training originals, while
+validation is 82% public images from other cameras and scenes. The final model also trained on 92 more images,
+including the 17 validation originals. With only 90 test objects (28 screwdrivers), one or two detections move a
+class's AP by several points. So the test measures performance in the group's own setting; the public validation
+score (0.799) is the better guide for unfamiliar scenes.
+
+**Weaknesses.** Boxes are often loose: AP50:95 is 0.447 and the mean matched IoU 0.74. Screwdrivers have the lowest
+precision (0.788; 7 of the 10 false positives). On validation screwdrivers stayed the hardest class (0.605); the
+40 × 40 grid and 9 anchors were chosen to help them.
+
+**Next steps.** A loss that targets box overlap directly (such as GIoU) for tighter boxes; more public screwdriver
+images in cluttered scenes; and a held-out set of public images to check generalization beyond the group's
+workbench.
 """))
 
 check_and_write(OUTPUT, CELLS, SOURCES, USED)

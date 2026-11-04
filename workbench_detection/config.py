@@ -38,17 +38,17 @@ class TrainConfig:
     mosaic: float = 0.5                # probability of a 4-image mosaic per training sample
     original_weight: float = 1.0       # sampling weight of original photos relative to public ones
     batch: int = 8
-    lr: float = 1e-3
+    lr: float = 5e-4                   # peak learning rate (AdamW)
     weight_decay: float = 1e-4
     epochs: int = 60                   # maximum epochs (proposal section 4.2)
     patience: int = 10                 # stop after this many epochs without a better validation AP50
     lr_schedule: str = "cosine"        # "cosine" decays to 5% of lr; "constant" keeps it fixed
-    warmup_epochs: float = 3.0         # linear warmup from 1% of lr
+    warmup_epochs: float = 5.0         # linear warmup from 1% of lr
     ema: bool = True                   # validate and save an exponential moving average of the weights
     objectness_prior: bool = True      # start objectness at 1% instead of 50%
-    anchors: int = 5                   # k-means anchor shapes per grid cell (YOLOv2 chose 5)
+    anchors: int = 9                   # k-means anchor shapes per grid cell (YOLOv2 chose 5)
     objectness_target: str = "iou"     # "iou": IoU of the predicted box (YOLOv2); "one": 1 for every object
-    stride: int = 32                   # output grid: 32 -> 20 x 20 (YOLOv2); 16 -> 40 x 40 for small objects
+    stride: int = 16                   # output grid: 32 -> 20 x 20 (YOLOv2); 16 -> 40 x 40 for small objects
     anchors_per_object: int = 1        # anchors trained per object in its cell (YOLOv2: 1, the best-matching one)
 
     def __post_init__(self):
@@ -85,6 +85,8 @@ class TrainConfig:
                       "lr_schedule": "constant", "warmup_epochs": 0.0, "ema": False, "objectness_prior": False}
             profiles = {"person1_augmentation": "full", "person3_baseline_20261103": "light"}
             values = {**legacy, **values, "augmentation": profiles[values["training_profile"]]}
+        # Checkpoints saved before a setting existed were trained with its original value, not today's default.
+        values = {**ADDED_SETTINGS, **values}
         known = {field.name for field in fields(cls)}
         return cls(**{key: value for key, value in values.items() if key in known})
 
@@ -92,12 +94,18 @@ class TrainConfig:
         return replace(self, **changes)
 
 
+# Settings added after the first runs, with the value those runs used.
+ADDED_SETTINGS = {"anchors": 5, "objectness_target": "iou", "stride": 32, "anchors_per_object": 1}
+
+
 def load_config(path):
-    """Read a YAML training configuration."""
+    """Read a YAML training configuration; settings it leaves out take the current defaults."""
     import yaml
 
     with Path(path).open(encoding="utf-8") as stream:
-        return TrainConfig.from_dict(yaml.safe_load(stream) or {})
+        values = yaml.safe_load(stream) or {}
+    known = {field.name for field in fields(TrainConfig)}
+    return TrainConfig(**{key: value for key, value in values.items() if key in known})
 
 
 def save_config(config, path):

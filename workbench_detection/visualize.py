@@ -143,7 +143,7 @@ def plot_anchors(dataset, anchors):
     axis.scatter(anchors[:, 0], anchors[:, 1], s=180, marker="X", color="black", label="anchors")
     axis.set_xlabel("box width (fraction of image)")
     axis.set_ylabel("box height (fraction of image)")
-    axis.set_title("Training box sizes and the 5 anchors")
+    axis.set_title(f"Training box sizes and the {len(anchors)} anchors")
     axis.legend()
     plt.show()
 

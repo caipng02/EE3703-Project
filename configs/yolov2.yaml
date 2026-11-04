@@ -5,15 +5,15 @@ augmentation: full          # full: proposal section 2.5; light: flip, brightnes
 mosaic: 0.5                 # probability of a 4-image mosaic per training sample
 original_weight: 1.0        # raise (e.g. 2.0) if original validation photos score far below public ones
 batch: 8
-lr: 0.001
+lr: 0.0005                  # peak learning rate (selected trial 5b)
 weight_decay: 0.0001
 epochs: 60                  # maximum (proposal section 4.2)
 patience: 10                # early stopping on validation AP50
 lr_schedule: cosine         # warmup, then cosine decay to 5% of lr
-warmup_epochs: 3
+warmup_epochs: 5
 ema: true                   # validate and save averaged weights
 objectness_prior: true      # objectness starts at 1% instead of 50%
-anchors: 5                  # anchor shapes per grid cell; 9 gives small, thin screwdrivers their own shapes
+anchors: 9                  # anchor shapes per grid cell; 9 gives small, thin screwdrivers their own shapes
 objectness_target: iou      # iou (YOLOv2) or one: stops small objects being pushed towards low confidence
-stride: 32                  # output grid 32 -> 20 x 20 (YOLOv2); 16 -> 40 x 40 for small objects such as screwdrivers
+stride: 16                  # output grid 32 -> 20 x 20 (YOLOv2); 16 -> 40 x 40 for small objects such as screwdrivers
 anchors_per_object: 1       # anchors trained per object; 2 gives thin screwdrivers a second positive example
