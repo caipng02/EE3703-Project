@@ -1,10 +1,11 @@
-# YOLOv2 development record
+# Development record
 
-What was changed and run for the YOLOv2 detector, with the results and known limitations. Scores are
+What was changed and run for the YOLOv2 and Faster R-CNN detectors, with the results and known limitations.
+YOLOv2 comes first; Faster R-CNN has its own section after the YOLOv2 limitations. Scores are
 **validation** unless marked otherwise (92 images: 17 original, 75 public). Metric: COCO AP50 averaged over
 drill, scissor and screwdriver, from pycocotools.
 
-## Results summary
+## YOLOv2 results summary
 
 | Trial | Date | Backbone | Recipe | Best val AP50 | Notes |
 |---|---|---|---|---|---|
@@ -277,7 +278,7 @@ loose. Screwdrivers have the lowest precision (0.788): 7 of the 10 false positiv
 scissor 2, from each class's precision and recall).
 The error figure in the notebook breaks these down.
 
-## Limitations
+## YOLOv2 limitations
 
 - **Screwdrivers on validation** stayed below target (AP50 0.605 vs 0.70 with trial 5b, up from 0.434 with trial
   3), though they reach 0.950 on the test originals; see the analysis above and the final test. Objectness target 1
@@ -301,8 +302,108 @@ The error figure in the notebook breaks these down.
   its cosine schedule spans 45 epochs rather than part of 60.
 - **First learning-rate step skipped on GPU:** the mixed-precision scaler skips its first update, which PyTorch
   reports as `lr_scheduler.step()` before `optimizer.step()`; 1 step out of about 2,500, negligible.
-- **Faster R-CNN** is integrated (`FasterRCNN_Project.ipynb`) but not yet trained on this pipeline, so the
-  two-detector comparison is still pending.
+- **Faster R-CNN** is compared in the next section; its final test is still to be run.
+
+## Faster R-CNN
+
+### Starting point: Person 2's branch (`RCNN_debug`)
+
+Person 2's Faster R-CNN: a ResNet-18 backbone (ImageNet weights) whose `dense` profile stops at layer 3 (stride 16,
+a 40 × 40 feature map), anchors of 5 sizes (32–512 px) × 3 ratios (0.5, 1, 2), an RPN, and an RoI head
+(RoIAlign 5 × 5, one 1024-unit layer, 4-way classifier and class-specific box offsets). Training: SGD lr 5e-4
+(heads 4×), batch 2, 10 epochs, constant learning rate; per image 300 proposals, 32 sampled RoIs (at most 8
+foreground). Person 2's measured development run, from their branch's README:
+
+| Validation (Person 2's run) | Value |
+|---|---|
+| Overall AP50 | 0.266 (0.248 for their earlier three-size baseline) |
+| Screwdriver AP50 | 0.007 |
+| Screwdrivers covered by a proposal at IoU ≥ 0.5: top 100 / top 600 | 2 / 13 of 47 |
+| Screwdrivers the RoI head names correctly when given the exact box | 40 of 47 |
+
+So the classifier mostly worked; objects were lost in the RPN, which rarely proposed a box around a screwdriver.
+
+### Integration (4 Nov)
+
+The model, losses and decoding were moved unchanged into the package (`models/faster_rcnn.py`); the RPN NMS IoU
+became a parameter so validation can choose it. `engine/faster_rcnn.py` runs it through the same steps as YOLOv2
+on the shared data pipeline and evaluator: development training with validation AP50 every epoch, then the RPN NMS
+IoU (proposal grid for Faster R-CNN: 0.50 / 0.70, final NMS fixed at 0.50) and operating confidence (0.2 / 0.3 /
+0.4) chosen on validation and frozen, then one final test after retraining on train + validation.
+`FasterRCNN_Project.ipynb` is built from the package like the YOLOv2 notebook. Person 2's branch imported an older
+copy of Person 1's data pipeline; its augmentation settings, normalization and sampling weights are identical to
+the package's. Differences from Person 2's run: the project seed (288275 instead of 42) and parallel data loading.
+
+### Accuracy trial (run `frcnn_accuracy_20261104_1155`, Colab T4)
+
+Same architecture; changes aimed at the proposal stage, where screwdrivers were lost, and at undertraining. They
+were made together (no time for one-at-a-time runs), so their separate effects are not measured:
+
+| Setting | Person 2's recipe | Accuracy trial | Reason |
+|---|---|---|---|
+| Epochs (early stopping) | 10 (none) | up to 60 (patience 10) | 10 was too few to see a plateau; 60 is the proposal's maximum |
+| Learning rate | 5e-4, constant | 1e-3, 1-epoch warmup, cosine decay to 5% | low and unscheduled for SGD at batch 2; YOLOv2's schedule |
+| Anchor ratios | 0.5, 1, 2 (15 anchors per cell) | 0.25, 0.5, 1, 2, 4 (25) | half the training screwdrivers are over 3:1 |
+| RPN foreground IoU | 0.7 | 0.6 | thin objects rarely reach 0.7 with any anchor |
+| Training proposals / sampled RoIs (max foreground) | 300 / 32 (8) | 600 / 128 (32) | standard is 128–512 RoIs; more examples for the RoI head |
+
+Training: 358 images, 179 updates per epoch. Validation AP50 rose from 0.03 (epoch 1) to 0.49 (epoch 10), 0.60
+(epoch 30) and a best of 0.701 at epoch 49; training stopped early after epoch 59. Training loss fell from 1.98
+to 0.34.
+
+| Validation (92 images) | Person 2's run | Accuracy trial | Target |
+|---|---|---|---|
+| **Overall AP50** | 0.266 | **0.701** | 0.70 |
+| AP50:95 | | 0.318 | |
+| Drill AP50 | | 0.953 | 0.75 |
+| Scissor AP50 | | 0.817 | 0.65 |
+| Screwdriver AP50 | 0.007 | 0.334 | 0.70 |
+| Original / public AP50 | | 0.714 / 0.695 | |
+
+Selected on validation: RPN NMS IoU 0.50 (AP50 0.701 against 0.696 at 0.70) and operating confidence 0.4. At
+that confidence: precision 0.479, recall 0.774, F1 0.592 (TP 113, FP 123, FN 33). Model: 9,976,013 parameters,
+40.0 MB checkpoint (YOLOv2: 37.3 M, 149 MB).
+
+Where objects are lost (Person 2's diagnostic, validation):
+
+| Class | Objects | Covered by a proposal (all / top 100) | RoI head correct on the exact box |
+|---|---|---|---|
+| Drill | 52 | 51 / 51 | 52 |
+| Scissor | 47 | 45 / 40 | 40 |
+| Screwdriver | 47 | 38 / 32 | 37 |
+
+**Finding.** The changes fixed what they targeted: screwdrivers covered by the top 100 proposals rose from 2 to 32
+of 47, and overall AP50 from 0.266 to 0.701, meeting the overall target. The gap is far larger than the seed and
+loading differences could explain. Screwdrivers remain the weak class (0.334): 15 of 47 have no proposal in the
+top 100, and the RoI head misnames 10 of 47 even given the exact box, which points at its coarse 5 × 5 pooled
+features for thin objects.
+
+**Decision.** The accuracy trial is the Faster R-CNN model for the final test (higher validation AP50 than
+Person 2's recipe, the same selection rule as for YOLOv2). The final test has not been run yet: set
+`RESUME_RUN = "frcnn_accuracy_20261104_1155"` and `RUN_FINAL_TEST = True` in the notebook.
+
+### Comparison with YOLOv2's screwdriver work
+
+YOLOv2's screwdriver gains came from finer spatial resolution (40 × 40 grid) plus thin anchor shapes (trial 5b:
+0.434 → 0.605); making the detector more confident about small objects (trials 5c, 5d) raised screwdrivers but
+not the overall score. The Faster R-CNN trial already uses stride-16 features and thin anchors. Its remaining
+gaps suggest, if there is time for one more validation run: an anchor size of 16 px (many validation
+screwdrivers are narrower than the smallest 32-px anchor) and RoIAlign 7 × 7 instead of 5 × 5. A stride-8
+feature map (closer to YOLOv2's fix) is a larger change. As with YOLOv2, a further trial is kept only if it beats
+the overall validation AP50 (0.701).
+
+### Faster R-CNN limitations
+
+- **Screwdrivers** are far below target on validation (0.334 vs 0.70), worse than YOLOv2 (0.605).
+- **Many false positives at the operating point:** precision 0.479 at confidence 0.4. F1 was still rising at the
+  top of the proposal's confidence grid (0.410, 0.513, 0.592), the same ceiling YOLOv2's trial 3 hit; AP50 is not
+  affected, but precision and F1 at the operating point are.
+- **Bundled changes:** the five changes of the accuracy trial were tested together, against a baseline measured
+  on Person 2's branch (different seed), not rerun on this pipeline.
+- **Loose boxes:** AP50:95 0.318 and mean matched IoU 0.73.
+- **Software check** ran with the default (Person 2's) settings, so it confirms the wiring, not the trial's
+  25-anchor model; the trial's own training run did use 25 anchors.
+- **Slower training:** each image passes through the network on its own, so an epoch takes longer than YOLOv2's.
 
 ## Changes, in order
 
@@ -344,3 +445,15 @@ demonstration confirmed twice the assigned anchors with 2. The assignment figure
 saved before the newer settings existed load with the values they were trained with. `YOLO_Project.ipynb` rebuilt
 with run `finegrid2_20261104_0654`'s outputs: development training, software check and validation from its first
 session, the final test from its second.
+
+**4 Nov – Faster R-CNN integrated.** Person 2's model from `RCNN_debug` moved into the package
+(`models/faster_rcnn.py`, `engine/faster_rcnn.py`) with `FasterRCNN_Project.ipynb` and its builder; the notebook
+builders now share `tools/notebook_parts.py`, and `lr_factor` has its own section so both use the schedule. New
+`FasterRCNNConfig` settings (anchor ratios, RPN foreground IoU, proposal and RoI sampling counts, learning-rate
+schedule) default to Person 2's values; the anchor ratios are saved in the checkpoint. The accuracy trial is the
+notebook's default trial.
+
+**4 Nov – GUI repository and model downloads.** The GUI, with only the code it needs for inference, is in its own
+public repository (github.com/kemilii/EE3703-Group05-GUI), with the final YOLOv2 model attached to its `models`
+release and a download script. The same model is attached to this repository's `models` release. Run folders that
+were moved or downloaded now find their own checkpoint (the protocol records the Colab path).
