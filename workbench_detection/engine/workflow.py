@@ -33,6 +33,8 @@ from .trainer import make_loader, make_scaler, train, training_step
 class Run:
     """Paths of one experiment run."""
 
+    model_name = MODEL_NAME  # the model's key in the run's evaluation protocol
+
     def __init__(self, root):
         self.root = Path(root)
 
@@ -47,8 +49,18 @@ class Run:
         return self.work("validation") / "evaluation_protocol.json"
 
     def development_checkpoint(self):
-        """The checkpoint validation selected settings for (recorded in the protocol)."""
-        return Path(load_json(self.protocol_path)["models"][MODEL_NAME]["validation_checkpoint"])
+        """The checkpoint validation selected settings for (recorded in the protocol).
+
+        The protocol records an absolute path (e.g. on Colab's Google Drive). If the run folder has since been moved
+        or downloaded, the same file is looked up inside this run folder instead.
+        """
+        recorded = Path(load_json(self.protocol_path)["models"][self.model_name]["validation_checkpoint"])
+        if not recorded.is_file() and self.root.name in recorded.parts:
+            index = len(recorded.parts) - 1 - recorded.parts[::-1].index(self.root.name)
+            moved = self.root.joinpath(*recorded.parts[index + 1:])
+            if moved.is_file():
+                return moved
+        return recorded
 
     def final_checkpoint(self):
         return self.work("final_train") / "best.pt"

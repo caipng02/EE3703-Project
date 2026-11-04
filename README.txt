@@ -21,6 +21,11 @@ Demo_Video.mp4             Inference on the 50 original test images by both
                            detectors, followed by the GUI demonstration
 README.txt                 This file
 
+GUI (bonus challenge) source code, in its own repository:
+  https://github.com/kemilii/EE3703-Group05-GUI
+  Upload a photo, choose YOLO or Faster R-CNN, and see the boxes, class
+  labels and confidences. Setup and run instructions are in its README.
+
 The notebooks are generated from the group's code repository, where the same
 code is organized as the Python package workbench_detection (data, models,
 engine, evaluation, gui) with a command-line interface and the browser GUI.

@@ -349,8 +349,7 @@ def train_faster_rcnn(config, dataset_root, work_dir, report_dir, device, *, fin
 class FasterRCNNRun(Run):
     """Paths of one Faster R-CNN run (the same layout as a YOLOv2 run)."""
 
-    def development_checkpoint(self):
-        return Path(load_json(self.protocol_path)["models"][FRCNN_NAME]["validation_checkpoint"])
+    model_name = FRCNN_NAME
 
 
 def frcnn_software_check(dataset_root, out_dir, device, batch=2):

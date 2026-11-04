@@ -26,7 +26,7 @@ dataset/ ──► data ──────────► models ─────
 | `workbench_detection/models/` | YOLOv2 / ResNet-18, ImageNet initialization, anchors, decoding, loss |
 | `workbench_detection/engine/` | Training loop, hyperparameter search, predictor, experiment workflow |
 | `workbench_detection/evaluation/` | Ground-truth loading, metrics, validation protocol, reports, timing |
-| `workbench_detection/gui/` | Browser demo (upload, model choice, boxes with labels and confidences) |
+| `workbench_detection/gui/` | Browser demo (upload, model choice, boxes with labels and confidences); the standalone copy for submission is <https://github.com/kemilii/EE3703-Group05-GUI> |
 | `workbench_detection/visualize.py` | Figures used by the notebook |
 | `configs/yolov2.yaml` | The recommended training settings |
 | `tools/build_notebook.py` | Regenerates `YOLO_Project.ipynb` from the package |
@@ -73,6 +73,11 @@ python -m workbench_detection predict --run runs/v1 photo.jpg  # draw detections
 python -m workbench_detection gui --run runs/v1                # browser demo at http://127.0.0.1:8765
 python -m workbench_detection score --help                     # score another detector's prediction JSON
 ```
+
+**Trained models.** Checkpoints are too large for git; they are attached to the
+[`models` release](https://github.com/caipng02/EE3703-Project/releases/tag/models). Unzip
+`yolov2_finegrid2_20261104_0654.zip` in the repository root (files land in `runs/`, which git ignores), then
+`python -m workbench_detection gui --run runs/finegrid2_20261104_0654` serves the final YOLOv2 model.
 
 A run folder:
 
