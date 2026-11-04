@@ -1,4 +1,4 @@
-"""Run the integrated YOLOv2 workflow for the workbench project."""
+"""Train and evaluate a workbench detector."""
 
 import argparse
 import os
@@ -12,23 +12,46 @@ LOCAL_DATASET = ROOT.parent / "tmp" / "person1_data_branch" / "model_training_ha
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model", choices=("yolov2", "faster-rcnn"), default="yolov2")
     parser.add_argument("--dataset-root", type=Path, default=LOCAL_DATASET)
-    parser.add_argument("--output", type=Path, default=ROOT / "outputs" / "yolov2",
+    parser.add_argument("--output", type=Path,
                         help="Checkpoints, protocols and inspection files.")
-    parser.add_argument("--results", type=Path, default=ROOT / "results" / "yolov2",
+    parser.add_argument("--results", type=Path,
                         help="Report metrics and figures.")
     parser.add_argument("--checkpoint", type=Path, help="Reuse a compatible development checkpoint and skip training.")
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--patience", type=int, default=10, help="Stop after this many epochs without higher validation AP50.")
     parser.add_argument("--batch", type=int, default=2)
-    parser.add_argument("--lr", type=float, default=0.0001)
-    parser.add_argument("--weight-decay", type=float, default=0.0001)
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--weight-decay", type=float)
     parser.add_argument("--device", help="Defaults to CUDA if available, otherwise CPU.")
     parser.add_argument("--ap-score-floor", type=float, default=0.001)
     parser.add_argument("--inspect", action="store_true", help="Run one training update and generate visible examples on the training sample.")
     parser.add_argument("--final-test", action="store_true", help="After validation, retrain with the selected settings and score the held-out test.")
     parser.add_argument("--gui", action="store_true", help="Serve the trained model and selected settings locally after evaluation.")
     args = parser.parse_args()
+    args.output = args.output or ROOT / "outputs" / args.model
+    args.results = args.results or ROOT / "results" / args.model
+    if args.model == "faster-rcnn":
+        if args.inspect or args.final_test or args.gui:
+            parser.error("The Faster R-CNN entry point supports development validation and checkpoint evaluation.")
+        from faster_rcnn_diagnostics import main as run_faster_rcnn
+
+        command = ["checkpoint" if args.checkpoint else "reproduce",
+                   "--dataset-root", str(args.dataset_root), "--output", str(args.output),
+                   "--results", str(args.results), "--epochs", str(args.epochs),
+                   "--batch", str(args.batch), "--patience", str(args.patience),
+                   "--score-floor", str(args.ap_score_floor)]
+        for flag, value in (("--device", args.device), ("--lr", args.lr),
+                            ("--weight-decay", args.weight_decay), ("--checkpoint", args.checkpoint)):
+            if value is not None:
+                command.extend((flag, str(value)))
+        run_faster_rcnn(command)
+        return
+    if args.lr is None:
+        args.lr = 0.0001
+    if args.weight_decay is None:
+        args.weight_decay = 0.0001
     if args.patience < 1:
         parser.error("--patience must be at least 1.")
     if args.inspect and (args.checkpoint or args.final_test or args.gui):

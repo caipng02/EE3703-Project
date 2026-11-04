@@ -95,3 +95,26 @@ The inspection uses eight training images and saves figures under `outputs/yolov
 Metrics print in the terminal and are saved with figures under `results/yolov2/`. Checkpoints and the validation protocol go under `outputs/yolov2/`. Use fresh `--results` and `--output` paths for separate runs.
 
 After choosing a configuration on validation, add `--final-test` for fixed-setting retraining and evaluation on the 50 held-out originals. Add `--gui` to launch the local browser demo at http://127.0.0.1:8765 using the resulting YOLOv2 checkpoint. Faster R-CNN requires its own model adapter and checkpoint.
+
+## Faster R-CNN development and debugging
+
+Install PyTorch and torchvision together for your CPU or CUDA environment, then
+install `requirements.txt` and unpack the same dataset described above. For a GPU
+development run on 358 training and 92 validation images:
+
+```sh
+python main.py --model faster-rcnn --dataset-root dataset --device cuda --epochs 10
+```
+
+The runner saves `best.pth`, `diagnostics.json`, `predictions.json`, and the
+validation protocol under `outputs/faster-rcnn/`. Metrics and SVG figures go
+under `results/faster-rcnn/`. For checkpoint evaluation, pass
+`--checkpoint path/to/best.pth` and choose fresh `--output` and `--results` paths.
+Omit `--device cuda` to let the runner select the available device.
+
+In the measured development run, the revised detector reached 26.57% mAP50
+versus 24.82% for the earlier three-scale baseline. Screwdriver AP50 was 0.72%.
+At IoU 0.50, the RPN covered 2 of 47 screwdrivers in its top 100 proposals and
+13 of 47 in its top 600. The RoI classifier correctly labeled 40 of 47 when
+given exact boxes. Look under `summary.per_class.screwdriver` in
+`diagnostics.json` when checking changes to proposal coverage.
