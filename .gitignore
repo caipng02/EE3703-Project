@@ -58,3 +58,6 @@ Demo_Video.mp4
 # Local working files: raw photos, dataset build archive and reference documents
 _archive/
 docs/
+model_training_handoff/
+tools/
+tests/
