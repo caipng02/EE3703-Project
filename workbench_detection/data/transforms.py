@@ -29,9 +29,11 @@ def restore_box(box, transform):
     x1, y1, x2, y2 = box
 
     def restore_x(x):
+        """Canvas x -> photo x (undo padding and scale), clipped to the photo."""
         return max(0, min(transform["width"], (x - transform["left"]) / transform["scale_x"]))
 
     def restore_y(y):
+        """Canvas y -> photo y (undo padding and scale), clipped to the photo."""
         return max(0, min(transform["height"], (y - transform["top"]) / transform["scale_y"]))
 
     return [restore_x(x1), restore_y(y1), restore_x(x2), restore_y(y2)]

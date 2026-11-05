@@ -168,6 +168,7 @@ def save_prediction_gallery(ground_truth: dict, predictions_list: list[dict],
 def print_metrics(result: dict) -> None:
     """Print one model's overall, per-class and per-subset metrics as a short text summary."""
     def value(number):
+        """A metric to 4 decimals, or N/A."""
         return "N/A" if number is None else f"{number:.4f}"
 
     config = result["config"]

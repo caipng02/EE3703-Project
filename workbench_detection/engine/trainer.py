@@ -60,6 +60,7 @@ class ModelEMA:
 
     @torch.no_grad()
     def update(self, model):
+        """Blend the model's current weights into the average (after each optimizer step)."""
         self.updates += 1
         decay = self.decay * (1 - math.exp(-self.updates / self.ramp))
         current = model.state_dict()

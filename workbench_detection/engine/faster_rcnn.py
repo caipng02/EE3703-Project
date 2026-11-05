@@ -80,6 +80,7 @@ class FasterRCNNConfig:
             raise ValueError(f"Invalid training settings: {', '.join(invalid)}")
 
     def to_dict(self):
+        """The settings as a plain dict (saved in run folders and checkpoints)."""
         return asdict(self)
 
 
@@ -276,6 +277,7 @@ def frcnn_train_batch(model, images, targets, device, config):
 
 
 def build_faster_rcnn(config):
+    """A Faster R-CNN with ImageNet backbone weights (if config.pretrained_backbone); prints its anchor setup."""
     model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=config.pretrained_backbone)
     print(f"Features: stride {FEATURE_STRIDE} | RoIAlign {ROI_POOL}x{ROI_POOL} | anchor sizes: {ANCHOR_SIZES} | "
           f"aspect ratios: {ASPECT_RATIOS} | anchors per location: "
@@ -417,6 +419,7 @@ def frcnn_software_check(dataset_root, out_dir, device, batch=2):
 
 
 def frcnn_develop(config, dataset_root, run, device):
+    """Development training in a new run folder; returns the checkpoint with the best validation AP50."""
     run.ensure_fresh("train")
     save_json(run.root / "config.json", config.to_dict())
     return train_faster_rcnn(config, dataset_root, run.work("train"), run.report("train"), device)["checkpoint"]

@@ -37,13 +37,16 @@ class Run:
         self.root = Path(root)
 
     def work(self, stage):
+        """Folder for a stage's checkpoints and protocol files."""
         return self.root / "work" / stage
 
     def report(self, stage):
+        """Folder for a stage's metrics, figures and result.json."""
         return self.root / "report" / stage
 
     @property
     def protocol_path(self):
+        """The validation protocol: settings frozen for the test."""
         return self.work("validation") / "evaluation_protocol.json"
 
     def development_checkpoint(self):
@@ -61,6 +64,7 @@ class Run:
         return recorded
 
     def final_checkpoint(self):
+        """The model retrained on train + validation for the test."""
         return self.work("final_train") / "best.pt"
 
     def best_checkpoint(self):
@@ -78,6 +82,7 @@ class Run:
         return load_json(path) if path.is_file() else None
 
     def ensure_fresh(self, *stages):
+        """Refuse to overwrite stages that already have results."""
         for stage in stages:
             for folder in (self.work(stage), self.report(stage)):
                 if folder.exists() and any(folder.iterdir()):

@@ -122,6 +122,7 @@ def coco_ap(ground_truth: dict, predictions: dict, config: EvaluationConfig) -> 
     images, annotations, detections = [], [], []
 
     def xywh(box: list) -> list:
+        """Pixel xyxy -> COCO's [x, y, width, height]."""
         x1, y1, x2, y2 = box
         return [x1, y1, x2 - x1, y2 - y1]
 
