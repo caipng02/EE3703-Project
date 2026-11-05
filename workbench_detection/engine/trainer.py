@@ -45,7 +45,6 @@ def lr_factor(step, total_steps, warmup_steps, schedule):
     return 1.0
 
 
-# %% optimization
 class ModelEMA:
     """Exponential moving average of the weights, used for validation and checkpoints.
 
@@ -71,6 +70,7 @@ class ModelEMA:
                 value.copy_(current[name])
 
 
+# %% optimization
 def make_scaler(device):
     """Mixed-precision gradient scaler, active on CUDA only (torch.amp.GradScaler needs PyTorch 2.3+)."""
     enabled = device.type == "cuda"

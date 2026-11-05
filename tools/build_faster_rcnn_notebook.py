@@ -4,12 +4,21 @@ Same structure as YOLO_Project.ipynb (tools/build_notebook.py): the shared data 
 Person 2's Faster R-CNN (models/faster_rcnn.py) and its training / validation / final-test engine
 (engine/faster_rcnn.py), with an explanation before each part and a figure or table after it.
 
-    python tools/build_faster_rcnn_notebook.py
+    python tools/build_faster_rcnn_notebook.py               # FasterRCNN_Project.ipynb
+    python tools/build_faster_rcnn_notebook.py --experiment  # experiments/FasterRCNN_screwdriver_experiment.ipynb
+    python tools/build_faster_rcnn_notebook.py --boxfix      # experiments/FasterRCNN_boxfix_experiment.ipynb
 """
+
+import sys
 
 from notebook_parts import ROOT, check_and_write, code, md, read_modules
 
-OUTPUT = ROOT / "FasterRCNN_Project.ipynb"
+BOXFIX = "--boxfix" in sys.argv[1:]
+EXPERIMENT = BOXFIX or "--experiment" in sys.argv[1:]
+OUTPUT = ROOT / ("experiments/FasterRCNN_boxfix_experiment.ipynb" if BOXFIX else
+                 "experiments/FasterRCNN_screwdriver_experiment.ipynb" if EXPERIMENT else "FasterRCNN_Project.ipynb")
+DEFAULT_TRIAL = '"stride8_v3"' if BOXFIX else '"stride8_v2"' if EXPERIMENT else '"stride8"'
+DEFAULT_SOURCE = "None"
 MODULES = ["config.py", "boxes.py", "data/dataset.py", "data/transforms.py", "data/augment.py", "data/sampling.py",
            "models/faster_rcnn.py", "evaluation/records.py", "evaluation/metrics.py", "evaluation/protocol.py",
            "evaluation/report.py", "evaluation/benchmark.py", "engine/trainer.py", "engine/workflow.py",
@@ -73,6 +82,22 @@ once, at the end, after retraining on train + validation with the frozen setting
 `dataset.zip` (from the repository root) when asked. Every setting is in the *Settings* cell of section 1. The final
 test is off until `RUN_FINAL_TEST = True`.
 """))
+if BOXFIX:
+    add(md("""
+> **Box-fix experiment (5 Nov).** Built from the same package as `FasterRCNN_Project.ipynb`. Trains
+> `TRIAL = "stride8_v3"` (section 1): `stride8_v2` with the RoI head's box offsets coded as in torchvision and
+> background RoIs drawn mostly from partial boxes. Aimed at `stride8_v2`'s errors: 125 of its 213 false positives
+> at confidence 0.4 were localization errors (right class, IoU 0.1-0.5 with the object). Results are recorded in
+> `development_record.md`.
+"""))
+elif EXPERIMENT:
+    add(md("""
+> **Screwdriver experiment (5 Nov).** Built from the same package as `FasterRCNN_Project.ipynb`, with settings for
+> the screwdriver trials (section 1). By default it trains `TRIAL = "stride8_v2"`; validation then also chooses the
+> number of anchors kept before RPN NMS. For the mosaic variant set `TRIAL = "stride8_v2_mosaic"`. To re-validate
+> the `stride8` run's checkpoint without training, set `SOURCE_RUN = "frcnn_stride8_20261105_0852"`. Results are
+> recorded in `development_record.md`.
+"""))
 
 # 1 Setup
 add(md("## 1. Setup"))
@@ -103,8 +128,31 @@ The only cell to edit. `TRIAL` picks the recipe:
   early stopping after 10 without improvement, as in the proposal) with warmup and cosine decay at a higher learning rate; anchor ratios 0.25 and 4 for long, thin tools; RPN foreground from IoU 0.6
   instead of 0.7 (thin objects rarely reach 0.7 with any anchor); and 128 RoIs per image for the RoI head
   (up to 32 foreground) instead of 32 (up to 8), from 600 training proposals.
+* **`"anchors"`**: the accuracy trial with anchor sizes in half-octave steps (16, 23, 32, 45 ... 512 px, 11 sizes
+  instead of 5) and RoIAlign 7 × 7 instead of 5 × 5. With the dense sizes, a box between two sizes fits no anchor well:
+  only 30 of 47 validation screwdrivers have an anchor at IoU ≥ 0.6 (43 with half-octave sizes). 7 × 7 pooling gives
+  the RoI head more detail of thin tools, which it misnamed 10 of 47 times even on the exact box.
+* **`"stride8"`**: the `"anchors"` trial on a stride-8 map (80 × 80): layer 3 upsampled and added to layer 2, as one
+  level of a feature pyramid, so thin tools cover more feature cells (46 of 47 validation screwdrivers have an
+  anchor at IoU ≥ 0.6). About 1.5 times slower per image. Validation AP50 0.769 (run `frcnn_stride8_20261105_0852`).
+* **`"stride8_v2"`**: `"stride8"` with changes aimed at screwdrivers (validation AP50 0.505, precision 0.378):
+  a second fully connected layer in the RoI head (torchvision's design) to separate screwdrivers from look-alikes;
+  24,000 anchors before RPN NMS in training instead of 6,000, so the RoI head trains on proposals for weakly scored
+  screwdrivers; and an exponential moving average of the weights (as in YOLOv2) for validation and checkpoints,
+  against the epoch-to-epoch swings of up to 0.09 in `"stride8"`'s validation AP50.
+* **`"stride8_v2_mosaic"`**: `"stride8_v2"` with 4-image mosaics for half the training samples (YOLOv2's recipe):
+  more, smaller objects per image.
+* **`"stride8_v3"`**: `"stride8_v2"` with two fixes for its localization errors (125 of 213 false positives: the
+  right class but a partial box). The RoI head's box offsets are scaled by (10, 10, 5, 5) and trained with smooth
+  L1 at beta 1/9 (torchvision's Faster R-CNN), so errors of a few percent of the box still give a full gradient;
+  before, raw offsets with beta 1 gave small errors almost none. And 75% of the background RoIs are partial boxes
+  (IoU 0.1-0.5 with an object, Fast R-CNN's background range), so the head learns to score them low.
 
-The recipe with the higher validation AP50 is kept for the final test.
+The recipe with the highest validation AP50 is kept for the final test. Validation also chooses how many
+top-scoring anchors enter RPN NMS (6,000 to 48,000; before, always 6,000), with the RPN NMS IoU.
+
+**`SOURCE_RUN`** re-runs validation (with that choice) on a finished run's trained checkpoint without retraining,
+in a new run folder; its final test then retrains that run's configuration. Leave it `None` to train `TRIAL`.
 
 Every stage saves its results in the run folder (Google Drive on Colab) and is skipped when re-run if it has already
 finished. **After a disconnect**, set `RESUME_RUN` to the run folder's name (printed below) and Run all. **For the
@@ -118,13 +166,23 @@ TRIALS = {
                                  aspect_ratios=(0.25, 0.5, 1.0, 2.0, 4.0), rpn_positive_iou=0.6,
                                  train_proposals=600, roi_samples=128, roi_foreground=32),
 }
-TRIAL = "accuracy"
+TRIALS["anchors"] = FasterRCNNConfig.from_dict({**TRIALS["accuracy"].to_dict(), "anchor_profile": "half_octave",
+                                                "roi_pool": 7})
+TRIALS["stride8"] = FasterRCNNConfig.from_dict({**TRIALS["anchors"].to_dict(), "features": "c3c4"})
+TRIALS["stride8_v2"] = FasterRCNNConfig.from_dict({**TRIALS["stride8"].to_dict(), "roi_fc_layers": 2,
+                                                   "train_pre_nms": 24000, "ema": True})
+TRIALS["stride8_v2_mosaic"] = FasterRCNNConfig.from_dict({**TRIALS["stride8_v2"].to_dict(), "mosaic": 0.5})
+TRIALS["stride8_v3"] = FasterRCNNConfig.from_dict({**TRIALS["stride8_v2"].to_dict(), "roi_box_coder": "standard",
+                                                   "roi_hard_negatives": 0.75})
+TRIAL = """ + DEFAULT_TRIAL + """        # "stride8_v2", "stride8_v2_mosaic", "stride8_v3"; "accuracy" is the 4 Nov run
+SOURCE_RUN = """ + DEFAULT_SOURCE + """   # a finished run to re-validate without training, or None to train TRIAL
 CONFIG = TRIALS[TRIAL]
 RUN_FINAL_TEST = False       # the single evaluation on the 50 original test photos; leave False until settings are final
 SAVE_TO_DRIVE = True         # on Colab, keep the run in Google Drive in case the session disconnects
 DATASET = Path("/content/dataset") if Path("/content").is_dir() else Path("dataset")
 RESUME_RUN = None            # e.g. "frcnn_accuracy_20261104_2130" to continue an earlier run
-RUN_NAME = RESUME_RUN or f"frcnn_{TRIAL}_" + datetime.now().strftime("%Y%m%d_%H%M")
+RUN_NAME = RESUME_RUN or (f"{SOURCE_RUN}_revalidated" if SOURCE_RUN else
+                          f"frcnn_{TRIAL}_" + datetime.now().strftime("%Y%m%d_%H%M"))
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IN_COLAB = "google.colab" in sys.modules
@@ -214,23 +272,25 @@ Box utilities used by the evaluator (IoU of two boxes and format conversion).
 """))
 add(src("boxes.py", "box-ops"))
 add(md("""
-**Architecture.** A ResNet-18 backbone (ImageNet weights) produces a feature map. With the `dense` anchor profile it
-stops after layer 3 (stride 16, 256 channels, a 40 × 40 map) so small screwdrivers cover several feature cells; the
-`original` profile uses layer 4 (stride 32, 512 channels).
+**Architecture.** A ResNet-18 backbone (ImageNet weights) produces a feature map. By default (`features` `c4`) it
+stops after layer 3 (stride 16, 256 channels, a 40 × 40 map) so small screwdrivers cover several feature cells.
+`c3c4` (the `stride8` trial) upsamples layer 3 and adds it to a 1 × 1 projection of layer 2, then smooths the sum
+with a 3 × 3 convolution: a stride-8, 80 × 80 map. `c5`, layer 4 at stride 32, is Person 2's original model.
 
 * **Anchors**: at every feature cell, one box per size × aspect ratio (dense: 5 sizes 32–512 px × ratios 0.5/1/2 = 15;
-  the accuracy trial adds ratios 0.25 and 4, giving 25).
+  the accuracy trial adds ratios 0.25 and 4, giving 25; half-octave sizes give 11 × 5 = 55).
 * **RPN**: a 3×3 convolution, then per anchor one objectness score and four box offsets.
-* **RoI head**: RoIAlign pools each proposal to 5 × 5 (dense) or 7 × 7 features; a fully connected layer of 1024
+* **RoI head**: RoIAlign pools each proposal to `roi_pool` × `roi_pool` features (default 5 × 5 on c4, 7 × 7 on c5); a fully connected layer of 1024
   units feeds a 4-way classifier (background + 3 tools) and class-specific box offsets.
 """))
 add(src("models/faster_rcnn.py", "model"))
 add(code("""
-model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=CONFIG.pretrained_backbone,
-                           anchor_scales=ANCHOR_PROFILES[CONFIG.anchor_profile], aspect_ratios=CONFIG.aspect_ratios)
-parts = {"backbone (ResNet-18)": model.backbone, "RPN": model.rpn, "RoI head": model.stage2}
+model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=CONFIG.pretrained_backbone, **CONFIG.model_settings())
+parts = {"backbone (ResNet-18)": model.pretrained_parts(), "feature merge (stride 8)": [model.neck] if model.neck else [],
+         "RPN": [model.rpn], "RoI head": [model.stage2]}
 for name, module in parts.items():
-    print(f"{name}: {sum(p.numel() for p in module.parameters()):,} parameters")
+    if module:
+        print(f"{name}: {sum(p.numel() for part in module for p in part.parameters()):,} parameters")
 image, target = train_set[scissor_image]
 with torch.no_grad():
     features, anchors, rpn_cls, rpn_reg = model.eval()([image])
@@ -326,14 +386,17 @@ add(md("### Software check\nOne update and one evaluation on 8 training images, 
        "connect before the long run. Its scores are not results."))
 add(code("""
 RUN = FasterRCNNRun(RUNS / RUN_NAME)
-if RUN.trained_checkpoint() is None:
+if SOURCE_RUN:
+    print(f"Re-validating {SOURCE_RUN}'s trained checkpoint; software check skipped.")
+elif RUN.trained_checkpoint() is None:
     frcnn_software_check(DATASET, RUN.root / "software_check", DEVICE)
 else:
     print("Training already finished in this run; software check skipped.")
 """))
 add(md("### Development training\nTrains on the 358 training images and validates on the 92 validation images every epoch."))
 add(code("""
-checkpoint = RUN.trained_checkpoint()
+checkpoint = FasterRCNNRun(RUNS / SOURCE_RUN).trained_checkpoint() if SOURCE_RUN else RUN.trained_checkpoint()
+assert not SOURCE_RUN or checkpoint is not None, f"No finished training in {RUNS / SOURCE_RUN}"
 if checkpoint is None:
     checkpoint = frcnn_develop(CONFIG, DATASET, RUN, DEVICE)
 else:
@@ -359,9 +422,13 @@ else:
     print("Loaded finished validation:\\n" + (RUN.report("validation") / "metrics.txt").read_text())
 protocol = load_json(RUN.protocol_path)
 settings = protocol["models"][FRCNN_NAME]
+if "pre_nms_trials" in settings:
+    print("Pre-NMS anchor trials (AP50 / screwdriver AP50):", {(row["rpn_pre_nms"], row["nms_iou"]):
+          (round(row["map50"], 4), round(row["class_ap50"]["screwdriver"], 4)) for row in settings["pre_nms_trials"]})
 print("RPN NMS trials:", {row["nms_iou"]: round(row["map50"], 4) for row in protocol["nms_trials"][FRCNN_NAME]})
 print("Confidence trials (F1):", {row["confidence"]: round(row["micro_f1"], 4) for row in settings["confidence_trials"]})
-print(f"Frozen settings: RPN NMS IoU {settings['nms']['nms_iou']}, final NMS IoU {settings['nms']['final_nms_iou']}, "
+print(f"Frozen settings: {settings.get('rpn_pre_nms', 6000)} anchors before RPN NMS, RPN NMS IoU "
+      f"{settings['nms']['nms_iou']}, final NMS IoU {settings['nms']['final_nms_iou']}, "
       f"operating confidence {settings['operating_confidence']}")
 plot_pr_curves(validation)
 """))

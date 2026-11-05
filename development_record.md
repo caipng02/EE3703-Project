@@ -386,23 +386,190 @@ Person 2's recipe, the same selection rule as for YOLOv2). The final test has no
 
 YOLOv2's screwdriver gains came from finer spatial resolution (40 × 40 grid) plus thin anchor shapes (trial 5b:
 0.434 → 0.605); making the detector more confident about small objects (trials 5c, 5d) raised screwdrivers but
-not the overall score. The Faster R-CNN trial already uses stride-16 features and thin anchors. Its remaining
-gaps suggest, if there is time for one more validation run: an anchor size of 16 px (many validation
-screwdrivers are narrower than the smallest 32-px anchor) and RoIAlign 7 × 7 instead of 5 × 5. A stride-8
-feature map (closer to YOLOv2's fix) is a larger change. As with YOLOv2, a further trial is kept only if it beats
-the overall validation AP50 (0.701).
+not the overall score. The Faster R-CNN trial already uses stride-16 features and thin anchors.
+
+### Next trials: anchor sizes, 7 × 7 pooling, stride 8 (5 Nov)
+
+The project goal is the highest validation AP50 that can be reached, not only the targets. Before choosing changes,
+the best IoU that any anchor reaches with each ground-truth box was computed for several anchor sets (no training;
+torchvision's anchor generator on the 640 × 640 grid):
+
+| Validation objects with an anchor at IoU ≥ 0.6 | Screwdriver (47) | Scissor (47) | Drill (52) |
+|---|---|---|---|
+| Accuracy trial: stride 16, sizes 32–512 (×2 steps), 5 ratios | 30 | 37 | 38 |
+| + a 16 px size | 30 | 37 | 38 |
+| Stride 16, sizes 16–512 in half-octave (×1.41) steps | 43 | 47 | 52 |
+| Stride 8, half-octave sizes | 46 | 47 | 52 |
+
+The 16 px anchor suggested earlier does nothing: only 5 of 47 validation screwdrivers are narrower than 32 px
+(median 52 × 109 px). The gap is between sizes: a box halfway between two ×2 sizes fits neither well, for all three
+classes. Each object's best anchor is already always RPN foreground, so the issue is how many good anchors teach
+the RPN, not whether any does. Two trials, run on top of the accuracy trial:
+
+| Trial | Change | Reason |
+|---|---|---|
+| `anchors` | sizes 16, 23, 32, 45, 64, 91, 128, 181, 256, 362, 512 (55 anchors per cell); RoIAlign 7 × 7 | anchor table above; the RoI head misnamed 10 of 47 screwdrivers on the exact box from 5 × 5 features |
+| `stride8` | `anchors` + layer 3 upsampled and added to layer 2 (1 × 1 lateral, 3 × 3 smoothing; one FPN level): an 80 × 80 map | YOLOv2's biggest screwdriver gain came from a finer grid |
+
+New settings: `features` (`c4`, `c3c4`, `c5`) and `roi_pool`; checkpoints store both, and older checkpoints load
+with Person 2's pairing (verified: the default and accuracy configurations give identical features, anchors,
+losses and weights after a training step to the code before the change). On CPU, `stride8` takes about 1.5 times
+as long per image as the accuracy trial; the RoI head grows from 6.6 M to 12.9 M parameters with 7 × 7 pooling.
+
+As with YOLOv2, a trial is kept only if it beats the overall validation AP50 (0.701).
+
+### Trial `stride8` (run `frcnn_stride8_20261105_0852`, Colab T4)
+
+Training: validation AP50 0.04 (epoch 1), 0.44 (epoch 8), 0.61 (epoch 19), 0.73 (epoch 37) and a best of 0.769
+at epoch 49; early stopping after epoch 59. Training loss 1.95 → 0.52. The curve is noisy: over the last 20
+epochs validation AP50 moved between 0.68 and 0.77 from one epoch to the next (92 images), so the best epoch's
+score is somewhat optimistic. The `anchors` trial was not run.
+
+| Validation (92 images) | Accuracy trial | `stride8` | Change | Target |
+|---|---|---|---|---|
+| **Overall AP50** | 0.701 | **0.769** | +0.068 | 0.70 |
+| AP50:95 | 0.318 | **0.350** | +0.032 | |
+| Drill AP50 | 0.953 | **0.972** | +0.019 | 0.75 |
+| Scissor AP50 | 0.817 | **0.832** | +0.015 | 0.65 |
+| Screwdriver AP50 | 0.334 | **0.505** | +0.171 | 0.70 |
+| Precision / recall (confidence 0.4) | 0.479 / 0.774 | **0.527** / **0.808** | | |
+| F1 | 0.592 | **0.638** | +0.046 | |
+| Original / public AP50 | 0.714 / 0.695 | **0.811** / **0.760** | | |
+| Parameters / checkpoint | 10.0 M / 40 MB | 16.9 M / 68 MB | | |
+
+Selected on validation: RPN NMS IoU 0.70 (AP50 0.769 against 0.709 at 0.50) and operating confidence 0.4 (F1:
+0.2 → 0.536, 0.3 → 0.595, 0.4 → 0.638). TP 118, FP 106, FN 28; mean matched IoU 0.727. Screwdriver precision
+0.378, recall 0.596.
+
+Where objects are lost (validation, at the selected RPN NMS IoU):
+
+| Class | Objects | Covered by a proposal (all / top 100) | RoI head correct on the exact box |
+|---|---|---|---|
+| Drill | 52 | 52 / 52 | 51 |
+| Scissor | 47 | 38 / 38 | 40 |
+| Screwdriver | 47 | 30 / 26 | 39 |
+
+**Finding.** Every class improved, screwdrivers most (0.334 → 0.505), and the RoI head names more screwdrivers
+correctly on the exact box (37 → 39 of 47). But fewer screwdrivers have a proposal at IoU ≥ 0.5 (38 → 30 of 47)
+although far more anchors fit them; the AP gain comes from the RoI head's box refinement and classification, not
+from better proposals. A likely cause (not yet tested): before RPN NMS only the 10 × 600 = 6,000 highest-scoring
+anchors are kept, which was 15% of the 40,000 anchors at stride 16 but is 1.7% of the 352,000 at stride 8, so
+lower-scoring screwdriver anchors are cut before NMS. The pre-NMS count is an inference setting and can be chosen
+on validation without retraining.
+
+**Decision.** `stride8` replaces the accuracy trial as the Faster R-CNN model for the final test (0.769 against
+0.701). It is still below YOLOv2's trial 5b on validation (0.803; screwdriver 0.605). The final test has not been
+run yet: set `RESUME_RUN = "frcnn_stride8_20261105_0852"` and `RUN_FINAL_TEST = True`. (The notebook's first
+cells were later re-run without `RESUME_RUN`, which created an extra Drive folder `frcnn_stride8_20261105_0926`
+holding only a software check; it is not used.)
+
+### Screwdriver experiment (`experiments/FasterRCNN_screwdriver_experiment.ipynb`)
+
+Goal before the final test: screwdriver validation AP50 of at least 0.70 (`stride8`: 0.505). Two steps:
+
+1. **Re-validate `stride8` without retraining** (`SOURCE_RUN = "frcnn_stride8_20261105_0852"`, new run folder
+   `frcnn_stride8_20261105_0852_revalidated`). Validation now also chooses how many top-scoring anchors enter RPN
+   NMS: 6,000 (the old fixed value), 12,000, 24,000 or 48,000, each at RPN NMS IoU 0.50 and 0.70; the count with
+   the best AP50 is frozen in the protocol with the other settings. Tests the pre-NMS explanation above.
+2. **Train `stride8_v2`** (and `stride8_v2_mosaic` in a second session), aimed at the RoI head, where screwdrivers
+   lose most (precision 0.378):
+
+| Setting | `stride8` | `stride8_v2` | Reason |
+|---|---|---|---|
+| RoI head | one fully connected layer of 1024 | two (torchvision's head) | more capacity to tell screwdrivers from look-alike background |
+| Anchors before RPN NMS in training | 6,000 | 24,000 | weakly scored screwdriver proposals reach the RoI head in training |
+| Weight averaging | none | EMA, decay 0.997 (about 2 epochs) | validation AP50 swung by up to 0.09 between epochs |
+| Mosaic (`stride8_v2_mosaic` only) | 0 | 0.5 | YOLOv2's recipe; more, smaller objects per image |
+
+The three `stride8_v2` changes are bundled (one run each is several hours). A trial is kept only if it beats the
+best overall validation AP50; with 47 validation screwdrivers, one screwdriver moves its AP50 by about 0.02, and
+every further choice made on validation makes the validation score more optimistic, so the final test is the
+only unbiased measure.
+
+**Trial `stride8_v2` (run `frcnn_stride8_v2_20261105_1217`, Colab T4).** Validation AP50 during training (6,000
+anchors before NMS, RPN NMS 0.70): 0.40 (epoch 8), 0.60 (epoch 17), 0.73 (epoch 37), best 0.752 at epoch 47;
+early stopping after epoch 57. With EMA the curve is smooth: over the last 20 epochs it stayed between 0.72 and
+0.75 (`stride8`: 0.68 to 0.77).
+
+| Pre-NMS anchors | AP50 at RPN NMS 0.50 / 0.70 | Screwdriver AP50 at 0.50 / 0.70 |
+|---|---|---|
+| 6,000 (old fixed value) | 0.716 / 0.752 | 0.435 / 0.497 |
+| 12,000 | 0.729 / 0.771 | 0.470 / 0.542 |
+| **24,000 (selected)** | 0.753 / **0.780** | 0.517 / **0.554** |
+| 48,000 | 0.758 / 0.780 | 0.530 / 0.554 |
+
+| Validation (92 images) | `stride8` (6,000 anchors) | `stride8_v2` (24,000) |
+|---|---|---|
+| **Overall AP50** | 0.769 | **0.780** |
+| AP50:95 | 0.350 | 0.350 |
+| Drill / scissor / screwdriver AP50 | **0.972** / 0.832 / 0.505 | 0.949 / **0.838** / **0.554** |
+| Precision / recall (confidence 0.4) | **0.527** / 0.808 | 0.364 / **0.836** |
+| F1 | **0.638** | 0.507 |
+| TP / FP / FN | 118 / **106** / 28 | **122** / 213 / **24** |
+| Screwdriver precision / recall | **0.378** / 0.596 | 0.228 / **0.660** |
+| Original / public AP50 | **0.811** / 0.760 | 0.809 / **0.771** |
+| Screwdrivers covered by a proposal (all / top 100) | 30 / 26 | **36** / 26 |
+| Screwdrivers named correctly on the exact box | 39 | **40** |
+
+**Findings.** (1) The pre-NMS explanation holds: with the same model, going from 6,000 to 24,000 anchors raises
+overall AP50 from 0.752 to 0.780 and screwdriver AP50 from 0.497 to 0.554, and screwdriver proposal coverage
+rises from 30 to 36 of 47. (2) At the old 6,000 anchors, `stride8_v2` (0.752) is *below* `stride8` (0.769); its
+higher headline score comes from the pre-NMS choice, which `stride8` has not been given yet. The two-layer head,
+training pre-NMS count and EMA together did not raise AP50 on equal terms; EMA did remove the validation noise.
+(3) False positives doubled (106 → 213) and precision fell to 0.364; F1 was again still rising at the top of the
+confidence grid (0.396, 0.453, 0.507), so the operating point is limited by the proposal's grid, not chosen freely.
+(4) Screwdrivers are still far from 0.70.
+
+**`stride8` re-validated** (run `frcnn_stride8_20261105_0852_revalidated`, no training; notebook saved as
+`experiments/FasterRCNN_screwdriver_experiment_run2.ipynb`, the `stride8_v2` run as `_run1`):
+
+| Validation, each model's own selection | `stride8` | `stride8_v2` |
+|---|---|---|
+| Pre-NMS anchors, AP50 at RPN NMS 0.70: 6,000 / 12,000 / 24,000 / 48,000 | 0.769 / 0.775 / 0.780 / 0.780 | 0.752 / 0.771 / 0.780 / 0.780 |
+| **Overall AP50** (24,000 selected for both) | 0.7796 | **0.7802** |
+| AP50:95 | **0.358** | 0.350 |
+| Drill / scissor / screwdriver AP50 | **0.956** / **0.861** / 0.522 | 0.949 / 0.838 / **0.554** |
+| Precision / recall / F1 (confidence 0.4) | 0.330 / **0.849** / 0.475 | **0.364** / 0.836 / **0.507** |
+| TP / FP / FN | **124** / 252 / **22** | 122 / **213** / 24 |
+| Original / public AP50 | **0.855** / 0.759 | 0.809 / **0.771** |
+
+The pre-NMS choice gives `stride8` +0.010 (`stride8_v2`: +0.028), and both end at the same overall AP50
+(difference 0.0006, under one detection). With more candidates precision falls for both (`stride8`: 0.527 →
+0.330), because more partial boxes survive to the output. By the selection rule `stride8_v2` stays ahead, and it
+is the more reliable of the two (smooth EMA curve rather than a best epoch picked from swings of up to 0.09).
+
+**Error review of `stride8_v2`** (validation, confidence 0.4): of 213 false positives, 125 are *localization*
+errors (the right class, IoU 0.1–0.5 with the object), 63 background, 24 duplicates and 1 wrong class; 24
+objects are missed. The examples show one drill covered by several high-confidence partial boxes that overlap each
+other too little for the final NMS. Two causes in the code:
+
+1. **Box offsets coded without scaling.** The RoI head regressed raw offsets with smooth L1 at beta 1 (weight 10),
+   so an error of a few percent of the box size gave almost no gradient; torchvision's Faster R-CNN scales the
+   offsets by (10, 10, 5, 5) and uses beta 1/9. Matches the loose boxes (AP50:95 0.35, matched IoU 0.72) and thin
+   screwdrivers falling below IoU 0.5.
+2. **Background RoIs sampled uniformly**, mostly empty background, so partial boxes are rarely trained as
+   background. Fast R-CNN draws background RoIs from IoU 0.1–0.5. (With an untrained RPN, uniform sampling gave
+   about 40% partial boxes; `roi_hard_negatives = 0.75` gives 75%. With a trained RPN the uniform share may be
+   higher, so this fix may matter less than the first.)
+
+**Trial `stride8_v3`** (`experiments/FasterRCNN_boxfix_experiment.ipynb`): `stride8_v2` with
+`roi_box_coder = "standard"` and `roi_hard_negatives = 0.75`. Kept only if it beats 0.780.
 
 ### Faster R-CNN limitations
 
-- **Screwdrivers** are far below target on validation (0.334 vs 0.70), worse than YOLOv2 (0.605).
-- **Many false positives at the operating point:** precision 0.479 at confidence 0.4. F1 was still rising at the
-  top of the proposal's confidence grid (0.410, 0.513, 0.592), the same ceiling YOLOv2's trial 3 hit; AP50 is not
+- **Screwdrivers** are below target on validation (`stride8`: 0.505 vs 0.70), worse than YOLOv2 (0.605).
+- **Proposals miss screwdrivers:** 17 of 47 validation screwdrivers have no proposal at IoU ≥ 0.5 in `stride8`
+  (accuracy trial: 9), possibly because of the fixed pre-NMS candidate count.
+- **Many false positives at the operating point:** precision 0.527 at confidence 0.4 (`stride8`). F1 was still rising at the
+  top of the proposal's confidence grid (0.536, 0.595, 0.638), the same ceiling YOLOv2's trial 3 hit; AP50 is not
   affected, but precision and F1 at the operating point are.
+- **Noisy validation curve:** epoch-to-epoch swings of up to 0.09 AP50 near the end of `stride8`'s training, so the
+  best epoch's 0.769 may overstate what the final retrain (fixed at 49 epochs, no selection) reaches.
 - **Bundled changes:** the five changes of the accuracy trial were tested together, against a baseline measured
   on Person 2's branch (different seed), not rerun on this pipeline.
-- **Loose boxes:** AP50:95 0.318 and mean matched IoU 0.73.
+- **Loose boxes:** AP50:95 0.350 and mean matched IoU 0.73 (`stride8`).
 - **Software check** ran with the default (Person 2's) settings, so it confirms the wiring, not the trial's
-  25-anchor model; the trial's own training run did use 25 anchors.
+  stride-8 model; the trial's own training run did use it.
 - **Slower training:** each image passes through the network on its own, so an epoch takes longer than YOLOv2's.
 
 ## Changes, in order
@@ -457,3 +624,24 @@ notebook's default trial.
 public repository (github.com/kemilii/EE3703-Group05-GUI), with the final YOLOv2 model attached to its `models`
 release and a download script. The same model is attached to this repository's `models` release. Run folders that
 were moved or downloaded now find their own checkpoint (the protocol records the Colab path).
+
+**5 Nov – Faster R-CNN feature and anchor options.** `features` (`c4` stride 16, `c3c4` stride 8, `c5` stride 32)
+and `roi_pool` settings and a `half_octave` anchor profile; the stride no longer follows from the anchor sizes
+(before, any sizes other than the dense profile silently switched to stride 32 with 7 × 7 pooling). Trials
+`anchors` and `stride8` added to `FasterRCNN_Project.ipynb`, whose default trial is now `stride8` (its saved
+outputs are run `frcnn_stride8_20261105_0852`'s). Defaults reproduce the earlier code exactly (same features, anchors,
+losses and weights after one update); old checkpoints load unchanged.
+
+**5 Nov – screwdriver experiment options.** Validation chooses the number of anchors kept before RPN NMS
+(`PRE_NMS_GRID`) and freezes it in `evaluation_protocol.json` (`rpn_pre_nms`; protocols without it keep the fixed
+6,000). New settings `roi_fc_layers`, `train_pre_nms` and `ema` (defaults reproduce the last commit exactly: same
+features, anchors, losses and weights after one update). `ModelEMA` moved to the trainer's schedule section so the
+Faster R-CNN notebook includes it. `tools/build_faster_rcnn_notebook.py --experiment` writes
+`experiments/FasterRCNN_screwdriver_experiment.ipynb`, which can re-validate a finished run (`SOURCE_RUN`) without
+retraining. `FasterRCNN_Project.ipynb` was not rebuilt and keeps the `stride8` run's code and outputs.
+
+**5 Nov – RoI box coding and hard negatives.** Settings `roi_box_coder` (`plain`, Person 2's; `standard`,
+torchvision's offset scaling and smooth-L1 beta, `BOX_CODERS`), saved in checkpoints so decoding matches training,
+and `roi_hard_negatives`. Defaults reproduce the last commit exactly (same features, anchors, losses and weights
+after one update); offsets decode back to the exact box with both codings. `--boxfix` builds
+`experiments/FasterRCNN_boxfix_experiment.ipynb` with trial `stride8_v3`.
