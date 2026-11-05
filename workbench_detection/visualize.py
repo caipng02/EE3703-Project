@@ -180,10 +180,18 @@ def show_assignment(dataset, index, anchors, grid=IMAGE_SIZE // 32):
 
 # %% result-figures
 def plot_history(history, title="Training"):
-    """Loss curves and validation AP50 per epoch."""
+    """Loss curves and validation AP50 per epoch (loss only for a final retrain, which has no validation data)."""
     import matplotlib.pyplot as plt
 
     epochs = [row["epoch"] for row in history]
+    if "val_map50" not in history[0]:
+        figure, left = plt.subplots(figsize=(5.5, 3.6))
+        left.plot(epochs, [row["train_loss"] for row in history], label="train")
+        left.set(title=f"{title}: loss", xlabel="epoch", yscale="log")
+        left.legend()
+        plt.tight_layout()
+        plt.show()
+        return
     figure, (left, right) = plt.subplots(1, 2, figsize=(11, 3.6))
     left.plot(epochs, [row["train_loss"] for row in history], label="train")
     if "val_loss" in history[0]:

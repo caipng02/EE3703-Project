@@ -63,14 +63,15 @@ Test set: 50 original photos, 90 objects (26 drills, 36 scissors,
 28 screwdrivers). AP50 / AP50:95:
 
                  YOLOv2           Faster R-CNN     Target (AP50)
-  Overall        0.933 / 0.447    FRCNN_TEST       0.70
-  Drill          0.906 / 0.448    FRCNN_DRILL      0.75
-  Scissor        0.943 / 0.462    FRCNN_SCISSOR    0.65
-  Screwdriver    0.950 / 0.431    FRCNN_SCREW      0.70
+  Overall        0.933 / 0.447    0.912 / 0.419    0.70
+  Drill          0.906 / 0.448    0.856 / 0.413    0.75
+  Scissor        0.943 / 0.462    0.951 / 0.449    0.65
+  Screwdriver    0.950 / 0.431    0.929 / 0.394    0.70
 
 Speed (batch 1, T4, including preprocessing and NMS): YOLOv2 41.9 ms per
-image (23.9 FPS); Faster R-CNN FRCNN_SPEED. Model size: YOLOv2 37.3 M
-parameters (149 MB); Faster R-CNN 18.0 M parameters (72 MB).
+image (23.9 FPS); Faster R-CNN 40.5 ms per image (24.7 FPS).
+Model size: YOLOv2 37.3 M parameters (149 MB); Faster R-CNN 18.0 M
+parameters (72 MB).
 
 - Screwdrivers were the hard class for both detectors: thin, often diagonal
   and small. On validation, finer features (YOLOv2's 40 x 40 grid, Faster
@@ -83,7 +84,10 @@ parameters (149 MB); Faster R-CNN 18.0 M parameters (72 MB).
 - Validation scores were lower than test scores for both detectors: 64% of
   the validation screwdrivers come from one cluttered public source, while
   the test holds only the group's own photos.
-- YOLOv2 produced far fewer false positives at its operating point
-  (validation precision 0.84 against 0.41 for Faster R-CNN), because its
+- Both detectors beat every target on the test. YOLOv2 is slightly more
+  accurate overall; Faster R-CNN is better on scissors, has higher recall
+  (0.92 against 0.89) and half the parameters, at the same speed.
+- YOLOv2 produced far fewer false positives at its operating point (test
+  precision 0.89 against 0.50 for Faster R-CNN), because its
   confidence is trained to match box overlap, whereas Faster R-CNN scores
   partial boxes of a correct class highly.

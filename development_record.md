@@ -594,9 +594,34 @@ precision at the operating point is still low (0.412; `stride8` before the pre-N
 against 0.780). It is still below YOLOv2's trial 5b on validation (0.803; screwdriver 0.605). The final test has not
 been run: in the box-fix notebook set `RESUME_RUN = "frcnn_stride8_v3_20261105_1304"` and `RUN_FINAL_TEST = True`.
 
+### Faster R-CNN final test (run `frcnn_stride8_v3_20261105_1338`, 5 Nov, Colab T4)
+
+`stride8_v3`'s settings, retrained from ImageNet on train + validation (450 images, 225 updates per epoch) for 44
+epochs (the development run's best epoch), then evaluated once on the 50 original test photos with the frozen
+settings: 24,000 anchors before RPN NMS, RPN NMS IoU 0.70, final NMS IoU 0.50, operating confidence 0.4. Training loss
+fell from 2.34 (epoch 1) as in development.
+
+| Test (50 originals, 90 objects) | AP50 | Target | AP50:95 | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|
+| **Overall** | **0.912** | 0.70 | 0.419 | 0.500 | 0.922 | 0.648 |
+| Drill (26) | 0.856 | 0.75 | 0.413 | 0.397 | 0.885 | 0.548 |
+| Scissor (36) | 0.951 | 0.65 | 0.449 | 0.586 | 0.944 | 0.723 |
+| Screwdriver (28) | 0.929 | 0.70 | 0.394 | 0.520 | 0.929 | 0.667 |
+
+TP 83, FP 83, FN 7; mean matched IoU 0.743. False positives: about 53 partial boxes (localization), 16 background,
+12 duplicates, 2 wrong class. Speed: 40.5 ms per image (24.7 FPS) at batch 1 on the T4. Model: 17,978,723 parameters,
+72.0 MB checkpoint.
+
+**Reading the result.** Every class beats its target. As for YOLOv2, the test is well above validation (0.912 against
+0.790; screwdrivers 0.929 against 0.567): the test holds only original photos (validation originals 0.848, public
+0.770), the final model trained on 92 more images, and with 28 test screwdrivers one detection moves their AP by
+several points. Against YOLOv2 on the same test: overall AP50 0.912 against 0.933, scissor 0.951 against 0.943,
+recall 0.922 against 0.889, precision 0.500 against 0.889, same speed, half the parameters.
+
 ### Faster R-CNN limitations
 
-- **Screwdrivers** are below target on validation (`stride8_v3`: 0.574 vs 0.70), worse than YOLOv2 (0.605).
+- **Screwdrivers** are below target on validation (`stride8_v3`: 0.567 vs 0.70; YOLOv2 0.605), though above it on
+  the test (0.929).
 - **Proposals miss screwdrivers:** in `stride8_v2`, 11 of 47 validation screwdrivers have no proposal at IoU ≥ 0.5
   even with 24,000 anchors before NMS (`stride8` with 6,000: 17); not measured for `stride8_v3`.
 - **Many false positives at the operating point:** precision 0.412 at confidence 0.4 (`stride8_v3`; 174 false

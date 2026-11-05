@@ -388,6 +388,11 @@ if test is None and RUN_FINAL_TEST:
     test = final_test(RUN, DATASET, DEVICE)
 elif test is not None:
     print("Loaded the finished test (it is never repeated):\\n" + (RUN.report("test") / "metrics.txt").read_text())
+    final_history = read_history(RUN.work("final_train") / "history.csv")
+    print("Final retrain log (saved per-epoch history; train + validation images, no validation scores):")
+    for row in final_history:
+        print(f"epoch {int(row['epoch']):>3}/{len(final_history)} | train_loss {row['train_loss']:.4f}")
+    plot_history(final_history, "Final retrain")
 if test is not None:
     timing = test["model_metadata"]["benchmark"]
     size = test["model_metadata"]["model_size"]

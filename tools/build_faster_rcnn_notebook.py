@@ -421,6 +421,13 @@ if test is None and RUN_FINAL_TEST:
     test = frcnn_final_test(RUN, DATASET, DEVICE)
 elif test is not None:
     print("Loaded the finished test (it is never repeated):\\n" + (RUN.report("test") / "metrics.txt").read_text())
+    with (RUN.work("final_train") / "history.csv").open(encoding="utf-8") as handle:
+        final_history = [{key: float(value) for key, value in row.items() if value != ""} for row in csv.DictReader(handle)]
+    print("Final retrain log (saved per-epoch history; train + validation images, no validation scores):")
+    for row in final_history:
+        print(f"epoch {int(row['epoch']):>3}/{len(final_history)} | train_loss {row['train_loss']:.4f} | RoIs fg/bg "
+              f"{int(row['sampled_foreground'])}/{int(row['sampled_background'])}")
+    plot_history(final_history, "Final retrain")
 if test is not None:
     timing = test["model_metadata"]["benchmark"]
     size = test["model_metadata"]["model_size"]
@@ -501,9 +508,34 @@ print(f"\\nRun folder: {RUN.root.resolve()}")
 add(md("""
 ### Conclusions
 
-*To be written from the results above:* how close each class came to its target; whether objects are lost in the RPN
-or the RoI head (section 8); what the error analysis shows; how Faster R-CNN compares with YOLOv2 on accuracy and
-speed; and what would improve it next.
+**Every class beats its target on the test.** Overall AP50 is 0.912 (target 0.70): drill 0.856, scissor 0.951,
+screwdriver 0.929. The detector runs at 40.5 ms per image (24.7 FPS) on a T4, with 18.0 M parameters (72 MB).
+
+**The test is well above validation (0.790).** The test holds only the group's own photos, and on validation the
+originals already scored higher than the public images (0.848 against 0.770). Screwdrivers show the gap most
+(validation 0.567, test 0.929): 30 of the 47 validation screwdrivers come from one cluttered public source with small
+screwdrivers among unlabelled look-alike tools, which the test does not contain. The final model also trained on the 92
+validation images. With 90 test objects (28 screwdrivers), one or two detections move a class's AP by several points.
+
+**Where objects are lost (section 8).** Drills are almost always proposed and named correctly. Screwdrivers are lost
+in both stages: on validation 11 of 47 have no proposal at IoU ≥ 0.5, and the RoI head names 9 of 47 wrongly even when
+given the exact box.
+
+**Weaknesses.** Precision is low at the operating point (0.500; 83 false positives against 83 true positives), while
+recall is high (0.922; 7 objects missed). Most false positives are partial boxes: the right class, but covering only
+part of an object (about 53 of 83), followed by background (16) and duplicates (12); wrong classes are rare (2). The
+RoI head scores a proposal by its class alone, so a box over half a drill can still score highly. AP50 is affected
+little because these boxes rank below the correct ones, but precision and F1 are. Boxes are also looser than
+YOLOv2's (AP50:95 0.419 against 0.447).
+
+**Compared with YOLOv2** (`YOLO_Project.ipynb`, the same data and protocol): slightly lower overall AP50 (0.912
+against 0.933), higher on scissors (0.951 against 0.943), the same speed (40.5 against 41.9 ms), half the parameters,
+and higher recall (0.922 against 0.889) but far lower precision (0.500 against 0.889). YOLOv2 trains its confidence to
+match the overlap of its box with the object, which keeps partial boxes low.
+
+**Next steps.** Score each detection by its predicted box quality as well as its class (an IoU branch in the RoI head,
+or refining boxes over several stages as in Cascade R-CNN) to suppress partial boxes; more public screwdriver images in
+cluttered scenes; and a held-out set of public images to check generalization beyond the group's workbench.
 """))
 
 check_and_write(OUTPUT, CELLS, SOURCES, USED, required=["models/faster_rcnn.py", "engine/faster_rcnn.py"])
