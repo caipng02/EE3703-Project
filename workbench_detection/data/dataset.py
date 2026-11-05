@@ -22,6 +22,7 @@ TRAINING_SPLITS = ("train", "trainval")  # "trainval" = train + valid, only for 
 
 
 def read_manifest(root):
+    """manifest.csv as a list of dicts: one row per image with its split, origin, source and box counts."""
     with (Path(root) / "manifest.csv").open(encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
 

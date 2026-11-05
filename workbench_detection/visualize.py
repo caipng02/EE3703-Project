@@ -70,6 +70,7 @@ def split_summary(rows):
 
 
 def plot_class_balance(table):
+    """Bar chart of boxes per class in each split (from class_balance)."""
     import matplotlib.pyplot as plt
 
     figure, axis = plt.subplots(figsize=(7, 3.2))
@@ -201,6 +202,7 @@ def plot_history(history, title="Training"):
 
 
 def plot_pr_curves(result):
+    """Precision-recall curve of each class at IoU 0.50, with its AP50 in the legend."""
     import matplotlib.pyplot as plt
 
     figure, axis = plt.subplots(figsize=(5, 4))

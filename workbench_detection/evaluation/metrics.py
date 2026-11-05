@@ -13,6 +13,8 @@ from .records import finite_number, mean_or_none, ratio, validate_ground_truth, 
 
 @dataclass(frozen=True)
 class EvaluationConfig:
+    """Scoring settings: matching IoU and confidence for precision/recall/F1, and how AP is computed."""
+
     operating_iou: float = 0.50
     operating_confidence: float = 0.50
     # AP uses ALL supplied predictions by default, independently of operating_confidence.
@@ -74,6 +76,7 @@ def match_class(gt: dict[str, dict], predictions: dict[str, dict], class_id: int
 
 
 def precision_recall_curve(matching: dict) -> dict:
+    """Precision and recall after each detection, from highest to lowest score, for one class's matching result."""
     tp = fp = 0
     precision, recall, scores = [], [], []
     for row in matching["rows"]:

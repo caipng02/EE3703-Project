@@ -79,12 +79,12 @@ def make_scaler(device):
     return torch.cuda.amp.GradScaler(enabled=enabled)
 
 
-def training_step(model, optimizer, images, targets, device, scaler, objectness_target="iou", anchors_per_object=1):
+def training_step(model, optimizer, images, targets, device, scaler):
     """One update: forward in mixed precision on CUDA, loss, backward, gradient clipping at norm 10, step."""
     optimizer.zero_grad(set_to_none=True)
     with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
         raw = model(images.to(device))
-    loss, _ = yolo_loss_on_cpu(raw, targets, model.anchors, objectness_target, anchors_per_object)
+    loss, _ = yolo_loss_on_cpu(raw, targets, model.anchors)
     if not torch.isfinite(loss):
         raise ValueError("Training produced a nonfinite loss.")
     scaler.scale(loss).backward()
@@ -98,7 +98,7 @@ def training_step(model, optimizer, images, targets, device, scaler, objectness_
 # %% train
 def build_model(anchors, config):
     """A YOLOv2 model initialized as the configuration says."""
-    model = YOLOv2ResNet18(anchors, stride=config.stride)
+    model = YOLOv2ResNet18(anchors)
     if config.pretrained_backbone:
         print(f"Loaded {load_imagenet_backbone(model)} ImageNet tensors into the ResNet-18 backbone.", flush=True)
     if config.objectness_prior:
@@ -119,6 +119,7 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
     work_dir.mkdir(parents=True, exist_ok=True)
     final = final_from is not None
     protocol = None
+    # 1. Settings: a final retrain takes the development run's settings, anchors and best epoch count
     if final:
         source = torch.load(final_from, map_location="cpu", weights_only=True)
         protocol = load_json(protocol_path)
@@ -131,10 +132,11 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
         anchors, epochs = source["anchors"], source["best_epoch"]
     else:
         epochs = config.epochs
+    # 2. Data: augmented training images, class-aware sampling; anchors from the training boxes only
     train_set = ToolDataset(dataset_root, "trainval" if final else "train", augment=True,
                             mosaic_p=config.mosaic, augmentation=config.augmentation)
     if not final:
-        anchors = anchors_from_dataset(train_set, config.anchors)
+        anchors = anchors_from_dataset(train_set)
     loader = make_loader(train_set, config.batch, training=True, generator=torch.Generator().manual_seed(SEED),
                          original_weight=config.original_weight)
     print(f"{'Final' if final else 'Development'} training on {len(train_set)} images | {epochs} epochs max | "
@@ -144,6 +146,7 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
         ap_config = EvaluationConfig(ap_backend="coco", ap_score_floor=AP_SCORE_FLOOR)
         ground_truth = load_ground_truth(dataset_root, "valid")
         valid = make_loader(ToolDataset(dataset_root, "valid"), config.batch)
+    # 3. Model, AdamW, warmup + cosine schedule (stepped every update), weight averaging, mixed precision
     model = build_model(anchors, config).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
     total_steps, warmup_steps = epochs * len(loader), int(config.warmup_epochs * len(loader))
@@ -153,12 +156,12 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
     scaler = make_scaler(device)
     checkpoint = work_dir / "best.pt"
     best, best_epoch, best_val_loss, history = -1, 0, None, []
+    # 4. Epochs: train, validate the averaged weights, keep the best checkpoint, stop early
     for epoch in range(1, epochs + 1):
         model.train()
-        total = 0.0
+        total = 0.0  # summed training loss over the epoch's images
         for images, targets in loader:
-            total += training_step(model, optimizer, images, targets, device, scaler,
-                                   config.objectness_target, config.anchors_per_object) * len(targets)
+            total += training_step(model, optimizer, images, targets, device, scaler) * len(targets)
             scheduler.step()
             if ema:
                 ema.update(model)
@@ -166,15 +169,14 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
         scored = ema.module if ema else model  # validation and checkpoints use the averaged weights
         if not final:
             exports, validation_loss = YOLOv2Detector(scored, device).export(
-                valid, ground_truth, [0.50], ap_config.ap_score_floor, checkpoint=checkpoint, with_loss=True,
-                objectness_target=config.objectness_target, anchors_per_object=config.anchors_per_object)
+                valid, ground_truth, [0.50], ap_config.ap_score_floor, checkpoint=checkpoint, with_loss=True)
             aps, _ = coco_ap(ground_truth, exports[0], ap_config)
             score = sum(ap["0.50"] for ap in aps) / len(aps)
             row.update(val_loss=validation_loss, val_map50=score)
         history.append(row)
         print(f"epoch {epoch:>3}/{epochs} | train_loss {row['train_loss']:.4f}"
               + (f" | val_loss {row['val_loss']:.4f} | val_AP50 {row['val_map50']:.4f}" if not final else ""), flush=True)
-        if final or score > best:
+        if final or score > best:  # development keeps the best epoch; the final retrain keeps the last
             if not final:
                 best, best_val_loss = score, validation_loss
             best_epoch = epoch
@@ -184,6 +186,7 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
         if not final and epoch - best_epoch >= config.patience:
             print(f"Early stopping: validation AP50 did not improve for {config.patience} epochs.", flush=True)
             break
+    # 5. Save the per-epoch history and the training curves
     with (work_dir / "history.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(history[0]))
         writer.writeheader()
@@ -195,5 +198,6 @@ def train(config, dataset_root, work_dir, report_dir, device, *, final_from=None
 
 
 def read_history(path):
+    """A run's history.csv (one row per epoch: losses, learning rate, validation AP50) as a list of dicts."""
     with Path(path).open(encoding="utf-8") as handle:
         return [{key: float(value) for key, value in row.items() if value != ""} for row in csv.DictReader(handle)]

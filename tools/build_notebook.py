@@ -19,7 +19,7 @@ OUTPUT = ROOT / "YOLO_Project.ipynb"
 MODULES = ["config.py", "boxes.py", "data/dataset.py", "data/transforms.py", "data/augment.py", "data/sampling.py",
            "models/yolov2.py", "models/loss.py", "evaluation/records.py", "evaluation/metrics.py",
            "evaluation/protocol.py", "evaluation/report.py", "evaluation/benchmark.py", "engine/predictor.py",
-           "engine/trainer.py", "engine/search.py", "engine/workflow.py", "visualize.py"]
+           "engine/trainer.py", "engine/workflow.py", "visualize.py"]
 SOURCES, IMPORTS = read_modules(MODULES)
 USED = set()
 
@@ -56,7 +56,7 @@ This notebook is the whole YOLOv2 project in reading order:
 | 4 | Model | ResNet-18 + YOLOv2 head, ImageNet initialization, anchors |
 | 5 | Loss and decoding | anchor assignment and the four loss terms |
 | 6 | Evaluation | COCO AP, P/R/F1, the validation protocol |
-| 7 | Training | loop, schedule, weight averaging, search; training curves |
+| 7 | Training | loop, schedule, weight averaging; training log and curves |
 | 8 | Validation | chosen NMS and confidence, precision-recall, examples |
 | 9 | Final test | the single evaluation on the 50 original photos, speed and size |
 | 10 | Error analysis | which mistakes the detector makes, with examples |
@@ -69,7 +69,7 @@ This notebook is the whole YOLOv2 project in reading order:
 |---|---|
 | Dataset loading, letterboxing, augmentation, mosaic, class-aware sampling | Group (NumPy / OpenCV operations) |
 | ResNet-18 layers, YOLOv2 head and passthrough, k-means anchors, anchor assignment, box encoding/decoding, YOLOv2 loss, confidence filtering, class-wise NMS | Group, from scratch with individual PyTorch layers |
-| Training loop, learning-rate schedule, weight averaging (EMA), hyperparameter search | Group |
+| Training loop, learning-rate schedule, weight averaging (EMA) | Group |
 | Precision/recall/F1, error categories, NMS and confidence selection, timing | Group |
 | Backbone initialization | ImageNet ResNet-18 weights from torchvision, copied into the hand-built layers (allowed by the professor) |
 | AP50 and AP50:95 | pycocotools (official COCO evaluator) |
@@ -102,9 +102,9 @@ saved with the run and inside each checkpoint, so the final retrain uses exactly
 add(src("config.py", "constants", "train-config"))
 add(md("""
 ### Settings
-The only cell to edit. `TrainConfig()` is the selected recipe (development trial 5b): a 40 × 40 output grid, 9 anchors,
-peak learning rate 5e-4 and a 5-epoch warmup. It had the highest validation AP50 of the development trials (0.803);
-the others are recorded in the group's development record. Change fields like `TrainConfig(lr=3e-4)`.
+`TrainConfig()` is the selected recipe: the YOLOv2 model of section 4 (40 × 40 output grid, 9 anchors) trained with
+AdamW at a peak learning rate of 5e-4 after a 5-epoch warmup. It had the highest validation AP50 of the group's
+development runs (0.803); the comparison runs are documented in the report.
 
 Every stage saves its results in the run folder (Google Drive on Colab) and is skipped when re-run if it has already
 finished. **After a disconnect**, set `RESUME_RUN` to the run folder's name (printed below) and Run all: finished
@@ -112,8 +112,7 @@ training, validation and test are loaded instead of repeated. **For the final te
 are good, set `RUN_FINAL_TEST = True` (with `RESUME_RUN` if the session has restarted) and Run all again.
 """))
 add(code("""
-CONFIG = TrainConfig()     # pretrained backbone, 40 x 40 grid, 9 anchors, full augmentation + mosaic 0.5, batch 8, lr 5e-4
-SEARCH_CONFIGS = 0         # proposal section 4.2: 8 trains eight lr x weight decay x batch combinations
+CONFIG = TrainConfig()     # pretrained backbone, full augmentation + mosaic 0.5, batch 8, AdamW lr 5e-4, EMA
 RUN_FINAL_TEST = True      # the single evaluation on the 50 original test photos (run once settings were final)
 SAVE_TO_DRIVE = True       # on Colab, keep the run in Google Drive in case the session disconnects
 DATASET = Path("/content/dataset") if Path("/content").is_dir() else Path("dataset")
@@ -211,11 +210,11 @@ Box utilities first: format conversion, IoU and non-maximum suppression, used by
 add(src("boxes.py", "box-ops", "nms"))
 add(md("""
 **Architecture.** A ResNet-18 backbone (7×7 stem, four stages of basic residual blocks) produces stride-16 and
-stride-32 features. The YOLOv2 head adds two 3×3 convolutions on the deep features. Original YOLOv2 (`stride=32`)
-reorganizes the stride-16 features onto the 20 × 20 grid (passthrough layer). The selected model (`stride=16`)
-instead upsamples the deep features onto the 40 × 40 grid of the stride-16 features, so small objects such as
-screwdrivers get cells of their own. Either way both are concatenated and the head predicts, for each of the 9
-anchors in every cell, x, y, w, h offsets, objectness and 3 class scores (9 × 8 = 72 output channels).
+stride-32 features. The YOLOv2 head adds two 3×3 convolutions on the deep features, which are then upsampled onto
+the 40 × 40 grid of the stride-16 features (instead of original YOLOv2's 20 × 20 grid), so small objects such as
+screwdrivers get cells of their own. The passthrough route brings the stride-16 features alongside; both are
+concatenated and the head predicts, for each of the 9 anchors in every cell, x, y, w, h offsets, objectness and
+3 class scores (9 × 8 = 72 output channels).
 """))
 add(src("models/yolov2.py", "backbone", "detector"))
 add(md("""
@@ -226,16 +225,16 @@ anchors per image (40 × 40 × 9), a 50% start makes background errors dominate 
 add(src("models/yolov2.py", "initialization"))
 add(md("""
 **Anchors** are the typical box shapes, found by k-means on the training boxes with 1 − IoU as the distance
-(YOLOv2's dimension clusters). Each prediction is an offset from one of them. YOLOv2 uses 5; the selected model
-uses 9 (`CONFIG.anchors`), which gives small, thin screwdrivers shapes of their own.
+(YOLOv2's dimension clusters). Each prediction is an offset from one of them. YOLOv2 uses 5; this model uses 9
+(`ANCHOR_COUNT`), which gives small, thin screwdrivers shapes of their own.
 """))
 add(src("models/yolov2.py", "anchors"))
 add(src("visualize.py", "model-figures", title="figures"))
 add(code("""
-anchors = anchors_from_dataset(train_set, CONFIG.anchors)
+anchors = anchors_from_dataset(train_set)
 print("Anchors (width, height as fractions of the image):", [tuple(round(float(v), 3) for v in a) for a in anchors])
 plot_anchors(train_set, anchors)
-model = YOLOv2ResNet18(anchors, stride=CONFIG.stride)
+model = YOLOv2ResNet18(anchors)
 parts = {"backbone (stem, s1-s4)": [model.stem, model.s1, model.s2, model.s3, model.s4],
          "YOLOv2 layers (deep, passthrough, head)": [model.deep, model.passthrough, model.head]}
 for name, modules in parts.items():
@@ -255,22 +254,20 @@ add(src("models/yolov2.py", "decoding"))
 add(md("""
 **Loss.** Each object is assigned to the grid cell containing its centre and to the best-matching free anchor there.
 Four terms: location (box offsets), object (objectness of assigned anchors, target = IoU of their predicted box),
-background (objectness of all other anchors) and class (cross-entropy). Because small boxes naturally reach lower
-IoUs, the IoU target pushes small objects towards low confidence; `objectness_target="one"` uses 1 instead.
+background (objectness of all other anchors) and class (cross-entropy).
 """))
 add(src("models/loss.py", "loss"))
 add(code("""
-show_assignment(train_set, scissor_image, anchors, grid=IMAGE_SIZE // CONFIG.stride)
+show_assignment(train_set, scissor_image, anchors, grid=IMAGE_SIZE // GRID_STRIDE)
 images, batch_targets = collate([train_set[i] for i in range(8)])
 for prior in (False, True):
     seed_everything()
-    untrained = YOLOv2ResNet18(anchors, stride=CONFIG.stride)
+    untrained = YOLOv2ResNet18(anchors)
     if prior:
         init_objectness_prior(untrained)
     with torch.no_grad():
         raw = untrained(images)
-        _, terms = yolo_loss(raw, encode_targets(batch_targets), untrained.anchors, objectness_target=CONFIG.objectness_target,
-                             anchors_per_object=CONFIG.anchors_per_object)
+        _, terms = yolo_loss(raw, encode_targets(batch_targets), untrained.anchors)
     share = terms["background"] / terms["loss"]
     print(f"objectness prior {'on ' if prior else 'off'}: loss {terms['loss']:.1f} | background term {share:.0%} | "
           f"{terms['assigned']} assigned anchors out of {raw[..., 0].numel()}")
@@ -314,9 +311,6 @@ average (EMA) of the weights, which smooths the epoch-to-epoch noise; the best e
 after 10 epochs without improvement (proposal section 4.2).
 """))
 add(src("engine/trainer.py", "loader", "schedule", "optimization", "train"))
-add(md("**Hyperparameter search** (proposal section 4.2): random combinations of learning rate {1e-4, 3e-4, 1e-3}, "
-       "weight decay {1e-4, 5e-4} and batch size {4, 8}, selected by validation AP50."))
-add(src("engine/search.py", "search"))
 add(md("**The workflow** ties the stages together and keeps every run's files in one folder."))
 add(src("engine/workflow.py", "run", "stages"))
 add(src("visualize.py", "result-figures", title="figures for training and results"))
@@ -327,22 +321,26 @@ RUN = Run(RUNS / RUN_NAME)
 if RUN.trained_checkpoint() is None:
     software_check(DATASET, RUN.root / "software_check", DEVICE)
 else:
-    print("Training already finished in this run; software check skipped.")
+    saved = RUN.root / "software_check" / "metrics.txt"
+    print("Training already finished in this run; its software check:\\n" + saved.read_text() if saved.is_file()
+          else "Training already finished in this run; software check skipped.")
 """))
 add(md("### Development training\nTrains on the 358 training images and validates on the 92 validation images every epoch."))
 add(code("""
 checkpoint = RUN.trained_checkpoint()
-if checkpoint is None:
-    checkpoint = develop(CONFIG, DATASET, RUN, DEVICE, search=SEARCH_CONFIGS)
+loaded = checkpoint is not None
+if loaded:
+    saved = torch.load(checkpoint, map_location="cpu", weights_only=True)
+    CONFIG = TrainConfig.from_dict(saved["config"])
+    print(f"Loaded finished training: {checkpoint} (best epoch {saved['best_epoch']})\\nSettings: {CONFIG.to_dict()}")
 else:
-    CONFIG = TrainConfig.from_dict(torch.load(checkpoint, map_location="cpu", weights_only=True)["config"])
-    print(f"Loaded finished training: {checkpoint}\\nSettings: {CONFIG.to_dict()}")
-if (RUN.report("search") / "search.csv").is_file():
-    search_rows = list(csv.DictReader((RUN.report("search") / "search.csv").open()))
-    for row in sorted(search_rows, key=lambda r: -float(r["best_map50"])):
-        print(f"{row['trial']}: lr={row['lr']} weight_decay={row['weight_decay']} batch={row['batch']} "
-              f"-> best AP50 {float(row['best_map50']):.4f} at epoch {row['best_epoch']}")
+    checkpoint = develop(CONFIG, DATASET, RUN, DEVICE)
 history = read_history(Path(checkpoint).parent / "history.csv")
+if loaded:  # the training log as it was printed, rebuilt from the saved per-epoch history
+    print("Training log (saved per-epoch history):")
+    for row in history:
+        print(f"epoch {int(row['epoch']):>3}/{CONFIG.epochs} | train_loss {row['train_loss']:.4f} | "
+              f"val_loss {row['val_loss']:.4f} | val_AP50 {row['val_map50']:.4f}")
 plot_history(history, "Development")
 """))
 

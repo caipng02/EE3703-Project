@@ -46,10 +46,6 @@ class TrainConfig:
     warmup_epochs: float = 5.0         # linear warmup from 1% of lr
     ema: bool = True                   # validate and save an exponential moving average of the weights
     objectness_prior: bool = True      # start objectness at 1% instead of 50%
-    anchors: int = 9                   # k-means anchor shapes per grid cell (YOLOv2 chose 5)
-    objectness_target: str = "iou"     # "iou": IoU of the predicted box (YOLOv2); "one": 1 for every object
-    stride: int = 16                   # output grid: 32 -> 20 x 20 (YOLOv2); 16 -> 40 x 40 for small objects
-    anchors_per_object: int = 1        # anchors trained per object in its cell (YOLOv2: 1, the best-matching one)
 
     def __post_init__(self):
         checks = {
@@ -63,39 +59,38 @@ class TrainConfig:
             "patience": self.patience >= 1,
             "lr_schedule": self.lr_schedule in ("cosine", "constant"),
             "warmup_epochs": self.warmup_epochs >= 0,
-            "anchors": 1 <= self.anchors <= 15,
-            "objectness_target": self.objectness_target in ("iou", "one"),
-            "stride": self.stride in (16, 32),
-            "anchors_per_object": 1 <= self.anchors_per_object <= self.anchors,
         }
         invalid = [name for name, ok in checks.items() if not ok]
         if invalid:
             raise ValueError(f"Invalid training settings: {', '.join(invalid)}")
 
     def to_dict(self):
+        """The settings as a plain dict (saved in run folders and checkpoints)."""
         return asdict(self)
 
     @classmethod
     def from_dict(cls, values):
-        """Build from a dict, ignoring unknown keys and mapping names used by older checkpoints."""
-        values = dict(values)
-        if "training_profile" in values:
-            # Checkpoints from before this package: missing settings had these values then.
-            legacy = {"pretrained_backbone": False, "mosaic": 0.0, "original_weight": 1.0,
-                      "lr_schedule": "constant", "warmup_epochs": 0.0, "ema": False, "objectness_prior": False}
-            profiles = {"person1_augmentation": "full", "person3_baseline_20261103": "light"}
-            values = {**legacy, **values, "augmentation": profiles[values["training_profile"]]}
-        # Checkpoints saved before a setting existed were trained with its original value, not today's default.
-        values = {**ADDED_SETTINGS, **values}
+        """Build from a dict saved with a run or checkpoint, ignoring unknown keys.
+
+        Runs saved while the architecture was still a setting must have used this one (ARCHITECTURE); a setting
+        missing from an old run had its original value then (ARCHITECTURE_BEFORE_SETTING).
+        """
+        values = {**ARCHITECTURE_BEFORE_SETTING, **dict(values)}
+        different = [key for key, value in ARCHITECTURE.items() if values.get(key, value) != value]
+        if "training_profile" in values or different:
+            raise ValueError(f"Saved for a different YOLOv2 architecture ({', '.join(different) or 'old format'}).")
         known = {field.name for field in fields(cls)}
         return cls(**{key: value for key, value in values.items() if key in known})
 
     def updated(self, **changes):
+        """A copy with some settings changed, e.g. config.updated(lr=3e-4)."""
         return replace(self, **changes)
 
 
-# Settings added after the first runs, with the value those runs used.
-ADDED_SETTINGS = {"anchors": 5, "objectness_target": "iou", "stride": 32, "anchors_per_object": 1}
+# The architecture in models/yolov2.py and models/loss.py, as the development code recorded it in run settings:
+# 9 k-means anchors, the 40 x 40 grid (stride 16), the IoU objectness target and one anchor per object.
+ARCHITECTURE = {"anchors": 9, "stride": 16, "objectness_target": "iou", "anchors_per_object": 1}
+ARCHITECTURE_BEFORE_SETTING = {"anchors": 5, "stride": 32, "objectness_target": "iou", "anchors_per_object": 1}
 
 
 def load_config(path):
@@ -109,6 +104,7 @@ def load_config(path):
 
 
 def save_config(config, path):
+    """Write a TrainConfig as YAML (the run folder's config.yaml)."""
     import yaml
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)

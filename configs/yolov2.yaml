@@ -13,7 +13,3 @@ lr_schedule: cosine         # warmup, then cosine decay to 5% of lr
 warmup_epochs: 5
 ema: true                   # validate and save averaged weights
 objectness_prior: true      # objectness starts at 1% instead of 50%
-anchors: 9                  # anchor shapes per grid cell; 9 gives small, thin screwdrivers their own shapes
-objectness_target: iou      # iou (YOLOv2) or one: stops small objects being pushed towards low confidence
-stride: 16                  # output grid 32 -> 20 x 20 (YOLOv2); 16 -> 40 x 40 for small objects such as screwdrivers
-anchors_per_object: 1       # anchors trained per object; 2 gives thin screwdrivers a second positive example

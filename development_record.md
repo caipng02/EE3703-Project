@@ -552,22 +552,67 @@ other too little for the final NMS. Two causes in the code:
    about 40% partial boxes; `roi_hard_negatives = 0.75` gives 75%. With a trained RPN the uniform share may be
    higher, so this fix may matter less than the first.)
 
-**Trial `stride8_v3`** (`experiments/FasterRCNN_boxfix_experiment.ipynb`): `stride8_v2` with
-`roi_box_coder = "standard"` and `roi_hard_negatives = 0.75`. Kept only if it beats 0.780.
+**Trial `stride8_v3`** (run `frcnn_stride8_v3_20261105_1304`, Colab T4,
+`experiments/FasterRCNN_boxfix_experiment.ipynb`): `stride8_v2` with `roi_box_coder = "standard"` and
+`roi_hard_negatives = 0.75`. The notebook's outputs were lost (the Colab session re-ran it); the results below come
+from the run folder's `report/validation/result.json`. The training curve and best epoch are not recorded here.
+
+| Pre-NMS anchors | AP50 at RPN NMS 0.50 / 0.70 |
+|---|---|
+| 6,000 | 0.737 / 0.773 |
+| 12,000 | 0.754 / 0.782 |
+| **24,000 (selected)** | 0.776 / **0.788** |
+| 48,000 | 0.778 / 0.787 |
+
+| Validation (92 images), each model's own selection | `stride8_v2` | **`stride8_v3`** | Change |
+|---|---|---|---|
+| **Overall AP50** | 0.780 | **0.788** | +0.008 |
+| AP50:95 | 0.350 | **0.394** | +0.044 |
+| Mean matched IoU | 0.719 | **0.746** | +0.027 |
+| Drill AP50 | **0.949** | 0.936 | −0.013 |
+| Scissor AP50 | 0.838 | **0.854** | +0.016 |
+| Screwdriver AP50 | 0.554 | **0.574** | +0.020 |
+| Screwdriver AP50:95 | 0.227 | **0.253** | +0.026 |
+| Precision / recall (confidence 0.4) | 0.364 / 0.836 | **0.412** / 0.836 | |
+| F1 | 0.507 | **0.552** | +0.045 |
+| TP / FP / FN | 122 / 213 / 24 | 122 / **174** / 24 | |
+| False positives: localization / background / duplicate / wrong class | 125 / 63 / 24 / 1 | **103** / **58** / **12** / 1 | |
+| Screwdriver precision / recall | 0.228 / 0.660 | **0.263** / 0.660 | |
+| Original / public AP50 | 0.809 / 0.771 | **0.828** / 0.769 | |
+
+Settings frozen on validation: 24,000 anchors before RPN NMS, RPN NMS IoU 0.70, final NMS IoU 0.50, operating
+confidence 0.4. Model: 17,978,723 parameters, 72.0 MB checkpoint.
+
+**Finding.** The fixes acted where the error review pointed: boxes are tighter (AP50:95 +0.044, matched IoU 0.719
+→ 0.746), and localization and duplicate false positives fell (125 → 103, 24 → 12). Recall is unchanged (same
+24 objects missed), so the gain comes from fewer and better-placed boxes, not from finding more objects. The
+overall AP50 gain (+0.008) is about one detection's worth on this validation set; the AP50:95 and error-count
+changes are larger and consistent with it. Screwdrivers improved (0.554 → 0.574) but remain far from 0.70, and
+precision at the operating point is still low (0.412; `stride8` before the pre-NMS choice: 0.527).
+
+**Decision.** `stride8_v3` is the Faster R-CNN model for the final test (highest overall validation AP50: 0.788
+against 0.780). It is still below YOLOv2's trial 5b on validation (0.803; screwdriver 0.605). The final test has not
+been run: in the box-fix notebook set `RESUME_RUN = "frcnn_stride8_v3_20261105_1304"` and `RUN_FINAL_TEST = True`.
 
 ### Faster R-CNN limitations
 
-- **Screwdrivers** are below target on validation (`stride8`: 0.505 vs 0.70), worse than YOLOv2 (0.605).
-- **Proposals miss screwdrivers:** 17 of 47 validation screwdrivers have no proposal at IoU ≥ 0.5 in `stride8`
-  (accuracy trial: 9), possibly because of the fixed pre-NMS candidate count.
-- **Many false positives at the operating point:** precision 0.527 at confidence 0.4 (`stride8`). F1 was still rising at the
-  top of the proposal's confidence grid (0.536, 0.595, 0.638), the same ceiling YOLOv2's trial 3 hit; AP50 is not
-  affected, but precision and F1 at the operating point are.
-- **Noisy validation curve:** epoch-to-epoch swings of up to 0.09 AP50 near the end of `stride8`'s training, so the
-  best epoch's 0.769 may overstate what the final retrain (fixed at 49 epochs, no selection) reaches.
+- **Screwdrivers** are below target on validation (`stride8_v3`: 0.574 vs 0.70), worse than YOLOv2 (0.605).
+- **Proposals miss screwdrivers:** in `stride8_v2`, 11 of 47 validation screwdrivers have no proposal at IoU ≥ 0.5
+  even with 24,000 anchors before NMS (`stride8` with 6,000: 17); not measured for `stride8_v3`.
+- **Many false positives at the operating point:** precision 0.412 at confidence 0.4 (`stride8_v3`; 174 false
+  positives, 103 of them partial boxes). Choosing more anchors before NMS raised AP50 but lowered precision for
+  every model (`stride8`: 0.527 → 0.330). F1 was still rising at the top of the proposal's confidence grid in every
+  run, the same ceiling YOLOv2's trial 3 hit; AP50 is not affected, but precision and F1 at the operating point are.
+- **Noisy validation curve (`stride8`):** epoch-to-epoch swings of up to 0.09 AP50 near the end of training; EMA
+  (`stride8_v2`, `stride8_v3`) removes most of it.
+- **Many choices made on validation:** anchors, stride, pre-NMS count, box coding and the trial itself were all
+  selected on the same 92 images (47 screwdrivers), so the validation scores are optimistic; the final test is the
+  only unbiased measure.
+- **Lost notebook outputs (`stride8_v3`):** the run's notebook was re-run by Colab and its outputs lost; the results
+  come from the run folder's saved files, and the training curve is not in this record.
 - **Bundled changes:** the five changes of the accuracy trial were tested together, against a baseline measured
   on Person 2's branch (different seed), not rerun on this pipeline.
-- **Loose boxes:** AP50:95 0.350 and mean matched IoU 0.73 (`stride8`).
+- **Loose boxes:** AP50:95 0.394 and mean matched IoU 0.75 (`stride8_v3`; `stride8`: 0.350 and 0.73).
 - **Software check** ran with the default (Person 2's) settings, so it confirms the wiring, not the trial's
   stride-8 model; the trial's own training run did use it.
 - **Slower training:** each image passes through the network on its own, so an epoch takes longer than YOLOv2's.
@@ -645,3 +690,26 @@ torchvision's offset scaling and smooth-L1 beta, `BOX_CODERS`), saved in checkpo
 and `roi_hard_negatives`. Defaults reproduce the last commit exactly (same features, anchors, losses and weights
 after one update); offsets decode back to the exact box with both codings. `--boxfix` builds
 `experiments/FasterRCNN_boxfix_experiment.ipynb` with trial `stride8_v3`.
+
+**5 Nov – submission notebooks (project briefing).** The briefing asks for notebooks with the selected
+architecture only ("do not include code for other ... architectures used only for comparison"), pre-run with
+training logs, curves and inference results visible. Both packages were reduced to the selected models:
+- Faster R-CNN: stride-8 features, half-octave anchors, RoIAlign 7 × 7, two fully connected layers and the
+  torchvision box coding are now fixed in `models/faster_rcnn.py`; `FasterRCNNConfig`'s defaults are the
+  `stride8_v3` recipe. Removed: stride-16/32 features, other anchor profiles, the one-layer head, the plain box
+  coding and Person 2's unbalanced-loss path.
+- YOLOv2: the 40 × 40 grid and 9 anchors are fixed; removed the stride-32 passthrough, the `objectness_target`
+  and `anchors_per_object` options and the hyperparameter search (never used for the selected model).
+- Checkpoints and run settings saved by the development code load only if they used the selected architecture.
+  For both models the reduced code gives bit-identical features, anchors, losses, detections and weights after
+  one update to the code before the change, on real training images; the final YOLOv2 checkpoint and a Faster
+  R-CNN checkpoint saved by the old code load and detect.
+- When a notebook resumes a finished run it now reprints the training log from the saved per-epoch history.
+- `FasterRCNN_Project.ipynb` resumes run `frcnn_stride8_v3_20261105_1338` with `RUN_FINAL_TEST = True`;
+  `YOLO_Project.ipynb` resumes `finegrid2_20261104_0654` (test already done, loaded). The previous notebooks with
+  their outputs are kept as `experiments/FasterRCNN_stride8_run.ipynb` and `experiments/YOLO_finegrid2_run.ipynb`.
+  The experiment notebooks in `experiments/` embed the code they ran with, including the removed options.
+- YOLOv2 code clarity: descriptive names and step comments in the loss, decoding and training loop; docstrings
+  for the remaining substantive functions (functions without one: 45 → 25, all private helpers or one-line
+  methods).
+

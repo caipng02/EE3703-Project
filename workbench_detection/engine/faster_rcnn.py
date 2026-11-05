@@ -3,7 +3,7 @@
 The steps match the YOLOv2 engine: development training on the training split with validation AP50 every epoch;
 then the RPN NMS IoU and operating confidence are chosen on validation and frozen in evaluation_protocol.json;
 then the model is retrained on train + validation for the best epoch count and scored once on the 50 test originals.
-The model, losses and training recipe are Person 2's (models/faster_rcnn.py).
+The model and losses are in models/faster_rcnn.py; FasterRCNNConfig's defaults are the selected training recipe.
 """
 
 import csv
@@ -26,9 +26,9 @@ from ..evaluation.metrics import EvaluationConfig, coco_ap
 from ..evaluation.protocol import NMS_GRIDS, run_evaluation
 from ..evaluation.records import load_ground_truth, load_json, predictions_from_outputs, save_json
 from ..evaluation.report import plot_training_history
-from ..models.faster_rcnn import (ANCHOR_PROFILES, ASPECT_RATIOS, BOX_CODERS, FEATURE_STRIDES, FINAL_NMS_IOU, INFERENCE_PROPOSALS,
+from ..models.faster_rcnn import (ANCHOR_SIZES, ASPECT_RATIOS, FEATURE_STRIDE, FINAL_NMS_IOU, INFERENCE_PROPOSALS, ROI_FC_LAYERS, ROI_POOL,
                                   RPN_NMS_IOU, RPN_POSITIVE_IOU, TRAIN_PROPOSALS, FasterRCNN_Modular, _match_boxes_to_gt,
-                                  compute_unified_loss_per_img, decode_detections, default_features, filter_proposals)
+                                  compute_unified_loss_per_img, decode_detections, filter_proposals)
 from .trainer import ModelEMA, lr_factor, make_loader
 from .workflow import Run
 
@@ -36,52 +36,41 @@ from .workflow import Run
 # %% config
 FRCNN_NAME = "Faster R-CNN"
 # Anchors kept (highest RPN score) before RPN NMS at inference, chosen on validation with the RPN NMS IoU. The
-# fixed default, 10 x 600 proposals, keeps 15% of the 40,000 stride-16 anchors but only 1.7% of 352,000 at stride 8.
+# usual 10 x 600 proposals = 6,000 keeps only 1.7% of the 352,000 anchors, which can cut weakly scored screwdrivers.
 PRE_NMS_GRID = (6000, 12000, 24000, 48000)
 FRCNN_EMA_DECAY = 0.997  # about 2 epochs of 179 updates, the same averaging horizon as YOLOv2's 0.99 at 45 updates
 
 
 @dataclass(frozen=True)
 class FasterRCNNConfig:
-    """Every setting that affects Faster R-CNN training. Defaults are Person 2's measured development run."""
+    """Every setting that affects Faster R-CNN training. The defaults are the selected recipe."""
 
     pretrained_backbone: bool = True   # ImageNet weights for the ResNet-18 backbone
-    anchor_profile: str = "dense"      # anchor sizes: "dense" 32-512 px; "half_octave" 16-512 in x1.41 steps
-    features: str = ""                 # "c4" stride 16, "c3c4" stride 8 (layers 2 + 3), "c5" stride 32;
-                                       # "" = Person 2's pairing: c4 with the dense anchors, c5 otherwise
-    roi_pool: int = 0                  # RoIAlign output size (roi_pool x roi_pool); 0 = 5 (c4, c3c4) or 7 (c5)
-    roi_fc_layers: int = 1             # fully connected layers of 1024 in the RoI head (torchvision uses 2)
-    train_pre_nms: int = 0             # anchors kept before RPN NMS in training; 0 = 10 x train_proposals
-    ema: bool = False                  # validate and save an exponential moving average of the weights
-    roi_box_coder: str = "plain"       # RoI box offsets: "plain" (Person 2) or "standard" (torchvision; BOX_CODERS)
-    roi_hard_negatives: float = 0.0    # share of sampled background RoIs taken from IoU 0.1-0.5 (partial boxes);
-                                       # 0 = uniform over all background proposals (Person 2)
-    aspect_ratios: tuple = ASPECT_RATIOS  # anchor height / width; 0.25 and 4 add shapes for long, thin tools
     rpn_positive_iou: float = RPN_POSITIVE_IOU  # anchors above this IoU with an object are RPN foreground
-    train_proposals: int = TRAIN_PROPOSALS  # proposals kept per image during training (dense profile)
-    roi_samples: int = 32              # RoIs sampled per image for the RoI head
-    roi_foreground: int = 8            # at most this many of them overlap an object
+    train_proposals: int = TRAIN_PROPOSALS  # proposals kept per image during training (after RPN NMS)
+    train_pre_nms: int = 24000         # highest-scoring anchors that enter RPN NMS during training
+    roi_samples: int = 128             # RoIs sampled per image for the RoI head
+    roi_foreground: int = 32           # at most this many of them overlap an object (IoU > 0.5)
+    roi_hard_negatives: float = 0.75   # share of the background RoIs taken from partial boxes (IoU 0.1-0.5)
     augmentation: str = "full"         # the same training augmentation as YOLOv2
-    mosaic: float = 0.0
-    original_weight: float = 1.0
+    mosaic: float = 0.0                # probability of a 4-image mosaic per training sample
+    original_weight: float = 1.0       # sampling weight of original photos relative to public images
     batch: int = 2                     # images per update (each image goes through the network on its own)
-    lr: float = 5e-4                   # SGD, momentum 0.9, for the backbone
-    head_lr_factor: float = 4.0        # RPN and RoI head learn this many times faster (dense profile)
+    lr: float = 1e-3                   # SGD, momentum 0.9, for the backbone
+    head_lr_factor: float = 4.0        # the neck, RPN and RoI head learn this many times faster
     weight_decay: float = 5e-4
-    epochs: int = 10
+    epochs: int = 60                   # maximum (proposal section 4.2)
     patience: int = 10                 # stop after this many epochs without a better validation AP50
-    lr_schedule: str = "constant"      # "cosine" decays to 5% of lr (as for YOLOv2)
-    warmup_epochs: float = 0.0         # linear warmup from 1% of lr
+    lr_schedule: str = "cosine"        # "cosine" decays to 5% of lr (as for YOLOv2); "constant"
+    warmup_epochs: float = 1.0         # linear warmup from 1% of lr
+    ema: bool = True                   # validate and save an exponential moving average of the weights
 
     def __post_init__(self):
-        object.__setattr__(self, "aspect_ratios", tuple(float(ratio) for ratio in self.aspect_ratios))
-        checks = {"aspect_ratios": len(self.aspect_ratios) > 0 and all(r > 0 for r in self.aspect_ratios),
-                  "rpn_positive_iou": 0.3 <= self.rpn_positive_iou < 1, "train_proposals": self.train_proposals >= 1,
+        checks = {"rpn_positive_iou": 0.3 <= self.rpn_positive_iou < 1, "train_proposals": self.train_proposals >= 1,
+                  "train_pre_nms": self.train_pre_nms >= self.train_proposals,
                   "roi_samples": self.roi_samples >= 1, "roi_foreground": 1 <= self.roi_foreground <= self.roi_samples,
-                  "lr_schedule": self.lr_schedule in ("constant", "cosine"), "warmup_epochs": self.warmup_epochs >= 0,"anchor_profile": self.anchor_profile in ANCHOR_PROFILES,
-                  "features": self.features in ("", *FEATURE_STRIDES), "roi_pool": self.roi_pool >= 0,
-                  "roi_fc_layers": self.roi_fc_layers >= 1, "train_pre_nms": self.train_pre_nms >= 0,
-                  "roi_box_coder": self.roi_box_coder in BOX_CODERS, "roi_hard_negatives": 0 <= self.roi_hard_negatives <= 1,
+                  "roi_hard_negatives": 0 <= self.roi_hard_negatives <= 1,
+                  "lr_schedule": self.lr_schedule in ("constant", "cosine"), "warmup_epochs": self.warmup_epochs >= 0,
                   "augmentation": self.augmentation in ("full", "light"), "mosaic": 0 <= self.mosaic <= 1,
                   "original_weight": self.original_weight > 0, "batch": self.batch >= 1, "lr": self.lr > 0,
                   "head_lr_factor": self.head_lr_factor > 0, "weight_decay": self.weight_decay >= 0,
@@ -93,32 +82,40 @@ class FasterRCNNConfig:
     def to_dict(self):
         return asdict(self)
 
-    def model_settings(self):
-        """Keyword arguments for FasterRCNN_Modular (also saved in each checkpoint)."""
-        scales = ANCHOR_PROFILES[self.anchor_profile]
-        return {"anchor_scales": scales, "aspect_ratios": self.aspect_ratios,
-                "features": self.features or default_features(scales), "pool_size": self.roi_pool or None,
-                "roi_fc_layers": self.roi_fc_layers, "roi_box_coder": self.roi_box_coder}
 
     @classmethod
     def from_dict(cls, values):
+        """Settings saved with a run or checkpoint. Runs saved while the architecture was still a setting must have
+        used this architecture (ARCHITECTURE); their other settings are kept."""
+        values = dict(values)
+        check_architecture(values)
         known = {field.name for field in fields(cls)}
-        return cls(**{key: value for key, value in dict(values).items() if key in known})
+        return cls(**{key: value for key, value in values.items() if key in known})
+
+
+# The architecture in models/faster_rcnn.py, as the development code recorded it in configs and checkpoints.
+ARCHITECTURE = {"features": "c3c4", "anchor_profile": "half_octave", "aspect_ratios": list(ASPECT_RATIOS),
+                "roi_pool": ROI_POOL, "pool_size": ROI_POOL, "roi_fc_layers": ROI_FC_LAYERS, "roi_box_coder": "standard",
+                "anchor_scales": list(ANCHOR_SIZES)}
+
+
+def check_architecture(saved):
+    """Refuse settings or checkpoints from a different Faster R-CNN architecture."""
+    different = [key for key, value in ARCHITECTURE.items()
+                 if key in saved and (list(saved[key]) if isinstance(saved[key], (list, tuple)) else saved[key]) != value]
+    if different:
+        raise ValueError(f"Saved for a different Faster R-CNN architecture ({', '.join(different)}).")
 
 
 # %% detector
 def load_faster_rcnn(path, device):
-    """Model in eval mode plus the checkpoint dict (anchor scales, config, stage, protocol)."""
+    """Model in eval mode plus the checkpoint dict (config, best epoch, stage, protocol)."""
     checkpoint = torch.load(path, map_location="cpu", weights_only=True)
     if tuple(checkpoint["classes"]) != CLASSES:
         raise ValueError("Checkpoint class order differs from the dataset.")
-    scales = tuple(checkpoint["anchor_scales"])  # older checkpoints have no features / pool size: Person 2's pairing
-    model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=False, anchor_scales=scales,
-                               aspect_ratios=tuple(checkpoint.get("aspect_ratios", ASPECT_RATIOS)),
-                               features=checkpoint.get("features") or default_features(scales),
-                               pool_size=checkpoint.get("pool_size"),
-                               roi_fc_layers=checkpoint.get("roi_fc_layers", 1),
-                               roi_box_coder=checkpoint.get("roi_box_coder", "plain"))
+    check_architecture(checkpoint)
+    check_architecture(checkpoint["config"])
+    model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=False)
     model.load_state_dict(checkpoint["state_dict"])
     return model.to(device).eval(), checkpoint
 
@@ -134,11 +131,7 @@ class FasterRCNNDetector:
     def __init__(self, model, device, *, confidence=0.25, nms_iou=RPN_NMS_IOU, pre_nms=None):
         self.model, self.device = model, torch.device(device)
         self.confidence, self.nms_iou = confidence, nms_iou
-        self.pre_nms = pre_nms or 10 * self.proposal_limit  # Person 2's fixed 10 x proposals by default
-
-    @property
-    def proposal_limit(self):
-        return INFERENCE_PROPOSALS if self.model.dense else 100
+        self.pre_nms = pre_nms or 10 * INFERENCE_PROPOSALS  # 6,000 unless validation chose another count
 
     @classmethod
     def from_checkpoint(cls, path, device, protocol=None):
@@ -160,13 +153,13 @@ class FasterRCNNDetector:
         results = {}
         for pre, iou in [(pre, iou) for pre in (pre_nms_values or [self.pre_nms]) for iou in nms_ious]:
             proposals, objectness = filter_proposals(logits, deltas, anchors[0], size, nms_iou=iou,
-                                                     limit=self.proposal_limit, pre_nms=pre)
+                                                     limit=INFERENCE_PROPOSALS, pre_nms=pre)
             roi_cls, roi_reg = self.model.forward_roi(features, [proposals])
             probabilities = roi_cls.softmax(1)
             # Discount RoI predictions attached to proposals with weak RPN support.
-            scores = probabilities * objectness[:, None].sqrt() if self.model.dense else probabilities
+            scores = probabilities * objectness[:, None].sqrt()
             output = decode_detections(proposals, scores, roi_reg.reshape(-1, 3, 4), size, score_floor,
-                                       limit=100 if self.model.dense else 20, box_coder=self.model.roi_box_coder)
+                                       limit=100)
             output["labels"] = output["labels"] - 1  # detector IDs 1-3 -> dataset IDs 0-2
             results[pre, iou] = output
         return results
@@ -209,7 +202,7 @@ class FasterRCNNDetector:
 
 @torch.inference_mode()
 def pipeline_diagnostics(detector, dataset):
-    """Where objects are lost, per class (Person 2's diagnostics).
+    """Where objects are lost, per class.
 
     rpn_covered: some proposal overlaps the object at IoU >= 0.5 (of all proposals / of the top 100).
     roi_correct_on_exact_boxes: the RoI head names the right class when given the ground-truth box itself.
@@ -221,7 +214,7 @@ def pipeline_diagnostics(detector, dataset):
         image, target = dataset[index]
         features, anchors, logits, deltas = model([image.to(device)])
         proposals, _ = filter_proposals(logits, deltas, anchors[0], image.shape[-2:], nms_iou=detector.nms_iou,
-                                        limit=detector.proposal_limit, pre_nms=detector.pre_nms)
+                                        limit=INFERENCE_PROPOSALS, pre_nms=detector.pre_nms)
         boxes = target["boxes"].to(device)
         if not len(boxes):
             continue
@@ -244,7 +237,7 @@ def pipeline_diagnostics(detector, dataset):
 
 # %% train
 def frcnn_train_batch(model, images, targets, device, config):
-    """One batch of Person 2's training: each image separately; config.roi_samples RoIs per image are sampled
+    """One training batch: each image separately; config.roi_samples RoIs per image are sampled
     for the RoI head, at most config.roi_foreground of them overlapping an object.
 
     Returns the mean loss over the batch and the (foreground, background) RoI counts per image.
@@ -255,8 +248,7 @@ def frcnn_train_batch(model, images, targets, device, config):
         target = {key: target[key].to(device) for key in ("boxes", "labels")}
         features, anchors, logits, deltas = model([image])
         boxes, _ = filter_proposals(logits, deltas, anchors[0], image.shape[-2:],
-                                    limit=config.train_proposals if model.dense else 100,
-                                    pre_nms=config.train_pre_nms or None)
+                                    limit=config.train_proposals, pre_nms=config.train_pre_nms)
         boxes = torch.cat((boxes, target["boxes"]))  # the ground-truth boxes are always candidate RoIs
         overlap, _ = _match_boxes_to_gt(boxes, target["boxes"])
         positive = torch.where(overlap > 0.50)[0]
@@ -275,8 +267,7 @@ def frcnn_train_batch(model, images, targets, device, config):
         sampled = boxes[torch.cat((positive, negative))]
         roi_cls, roi_reg = model.forward_roi(features, [sampled])
         loss = compute_unified_loss_per_img(logits, deltas, roi_cls, roi_reg, anchors[0], sampled, target,
-                                            balanced_rpn=model.dense, rpn_positive_iou=config.rpn_positive_iou,
-                                            roi_box_coder=model.roi_box_coder)
+                                            rpn_positive_iou=config.rpn_positive_iou)
         if not torch.isfinite(loss):
             raise ValueError("Nonfinite Faster R-CNN loss.")
         losses.append(loss)
@@ -285,22 +276,18 @@ def frcnn_train_batch(model, images, targets, device, config):
 
 
 def build_faster_rcnn(config):
-    model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=config.pretrained_backbone, **config.model_settings())
-    print(f"Features: {model.features} (stride {FEATURE_STRIDES[model.features]}) | RoIAlign "
-          f"{model.pool_size}x{model.pool_size} | anchor scales: {ANCHOR_PROFILES[config.anchor_profile]} | "
-          f"aspect ratios: {config.aspect_ratios} | anchors per location: "
+    model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=config.pretrained_backbone)
+    print(f"Features: stride {FEATURE_STRIDE} | RoIAlign {ROI_POOL}x{ROI_POOL} | anchor sizes: {ANCHOR_SIZES} | "
+          f"aspect ratios: {ASPECT_RATIOS} | anchors per location: "
           f"{model.anchor_generator.num_anchors_per_location()[0]}", flush=True)
     return model
 
 
 def frcnn_optimizer(model, config):
-    """SGD with momentum; with finer features (dense) the parts trained from scratch (neck, RPN, RoI head) get
-    head_lr_factor x the backbone's lr."""
-    parameters = model.parameters()
-    if model.dense:
-        head_lr = config.head_lr_factor * config.lr
-        parameters = ([{"params": part.parameters()} for part in model.pretrained_parts()]
-                      + [{"params": part.parameters(), "lr": head_lr} for part in model.new_parts()])
+    """SGD with momentum; the parts trained from scratch (neck, RPN, RoI head) get head_lr_factor x the backbone's lr."""
+    head_lr = config.head_lr_factor * config.lr
+    parameters = ([{"params": part.parameters()} for part in model.pretrained_parts()]
+                  + [{"params": part.parameters(), "lr": head_lr} for part in model.new_parts()])
     return torch.optim.SGD(parameters, lr=config.lr, momentum=0.9, weight_decay=config.weight_decay)
 
 
@@ -346,17 +333,16 @@ def train_faster_rcnn(config, dataset_root, work_dir, report_dir, device, *, fin
     best, best_epoch, history = -1.0, 0, []
     for epoch in range(1, epochs + 1):
         model.train()
-        if model.dense:  # each forward sees one image, so keep the pretrained BatchNorm statistics fixed
-            for layer in (module for part in model.pretrained_parts() for module in part.modules()):
-                if isinstance(layer, nn.BatchNorm2d):
-                    layer.eval()
+        # each forward sees one image, so keep the pretrained BatchNorm statistics fixed
+        for layer in (module for part in model.pretrained_parts() for module in part.modules()):
+            if isinstance(layer, nn.BatchNorm2d):
+                layer.eval()
         total, foreground, background = 0.0, 0, 0
         for images, targets in loader:
             optimizer.zero_grad(set_to_none=True)
             loss, counts = frcnn_train_batch(model, images, targets, device, config)
             loss.backward()
-            if model.dense:
-                nn.utils.clip_grad_norm_(model.parameters(), 5.0, error_if_nonfinite=True)
+            nn.utils.clip_grad_norm_(model.parameters(), 5.0, error_if_nonfinite=True)
             optimizer.step()
             scheduler.step()
             if ema:
@@ -380,10 +366,7 @@ def train_faster_rcnn(config, dataset_root, work_dir, report_dir, device, *, fin
             if not final:
                 best = score
             best_epoch = epoch
-            torch.save({"state_dict": scored.state_dict(), "anchor_scales": ANCHOR_PROFILES[config.anchor_profile],
-                        "aspect_ratios": config.aspect_ratios, "features": model.features,
-                        "pool_size": model.pool_size, "roi_fc_layers": model.roi_fc_layers,
-                        "roi_box_coder": model.roi_box_coder,
+            torch.save({"state_dict": scored.state_dict(), **ARCHITECTURE,
                         "classes": CLASSES, "config": config.to_dict(), "best_epoch": epoch,
                         "stage": "final" if final else "validation", "protocol": protocol}, checkpoint)
         if not final and epoch - best_epoch >= config.patience:

@@ -19,25 +19,30 @@ from ..config import CLASSES
 
 # %% helpers
 def finite_number(value: Any) -> bool:
+    """True for an int or float that is neither NaN nor infinite (booleans excluded)."""
     return isinstance(value, (float, int)) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def mean_or_none(values: Sequence[float]) -> float | None:
+    """Mean of the values, or None when there are none."""
     return statistics.mean(values) if values else None
 
 
 def ratio(numerator: int | float, denominator: int | float) -> float:
+    """numerator / denominator, or 0.0 when the denominator is zero."""
     # Explicit zero-denominator convention for P/R/F1. AP has separate null handling.
     return numerator / denominator if denominator else 0.0
 
 
 def save_json(path: str | Path, value: Any) -> None:
+    """Write value as indented JSON, creating the parent folder."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n", encoding="utf-8")
 
 
 def load_json(path: str | Path) -> dict:
+    """Read a JSON file."""
     with Path(path).open(encoding="utf-8-sig") as stream:
         result = json.load(stream)
     if not isinstance(result, dict):
@@ -46,6 +51,7 @@ def load_json(path: str | Path) -> dict:
 
 
 def write_csv(path: str | Path, rows: list[dict], fields: Sequence[str]) -> None:
+    """Write rows (dicts) to a CSV file with the given column order."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8-sig") as stream:
@@ -90,6 +96,7 @@ def validate_ground_truth(data: dict) -> dict[str, dict]:
 
 
 def _validate_instances(record: dict, image: dict, class_count: int, prediction: bool) -> None:
+    """Check one image's boxes, labels (and scores for predictions): matching lengths, valid classes, boxes inside the image."""
     image_id = record["image_id"]
     boxes, labels = record.get("boxes"), record.get("labels")
     if not isinstance(boxes, list) or not isinstance(labels, list) or len(boxes) != len(labels):
@@ -111,6 +118,7 @@ def _validate_instances(record: dict, image: dict, class_count: int, prediction:
 
 
 def validate_predictions(data: dict, ground_truth: dict) -> dict[str, dict]:
+    """Check a prediction file against the ground truth (same images, valid boxes, classes and scores); return its records by image ID."""
     gt = validate_ground_truth(ground_truth)
     if data.get("data_kind") != ground_truth["data_kind"]:
         raise ValueError("Prediction and ground-truth data_kind must agree.")

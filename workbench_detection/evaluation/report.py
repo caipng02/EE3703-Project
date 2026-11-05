@@ -83,6 +83,7 @@ def plot_training_history(history: Sequence[dict], output_dir: str | Path,
 
 
 def plot_ap_comparison(results: list[dict], classes: list[str], path: str | Path, title: str) -> None:
+    """Grouped bar chart of AP50 per class for one or more models, saved to path."""
     elements = _svg_start(1000, 130 + 75 * len(classes) * len(results), title)
     row = 0
     for name in classes:
@@ -165,6 +166,7 @@ def save_prediction_gallery(ground_truth: dict, predictions_list: list[dict],
 
 
 def print_metrics(result: dict) -> None:
+    """Print one model's overall, per-class and per-subset metrics as a short text summary."""
     def value(number):
         return "N/A" if number is None else f"{number:.4f}"
 

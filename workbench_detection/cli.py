@@ -1,7 +1,7 @@
 """Command-line interface: python -m workbench_detection <command> --help
 
     inspect   software check on 8 training images
-    train     development training (or --search N) and validation; --final-test also runs the test
+    train     development training and validation; --final-test also runs the test
     test      final retrain and the single evaluation on the 50 original test images
     predict   draw detections on your own photos
     gui       browser demo at http://127.0.0.1:8765
@@ -60,12 +60,11 @@ def main(argv=None):
     sub.add_argument("--dataset", type=Path, default=Path("dataset"))
     sub.add_argument("--out", type=Path, default=Path("runs/inspect"))
 
-    sub = command("train", "Development training (or a search) followed by validation.")
+    sub = command("train", "Development training followed by validation.")
     sub.add_argument("--dataset", type=Path, default=Path("dataset"))
     sub.add_argument("--run", type=Path, required=True, help="New run folder, e.g. runs/pretrained_v1")
     sub.add_argument("--config", type=Path, default=Path("configs/yolov2.yaml"))
     sub.add_argument("--set", nargs="*", default=[], metavar="KEY=VALUE", help="Override settings, e.g. lr=3e-4 ema=false")
-    sub.add_argument("--search", type=int, default=0, help="Random search over N of the 12 lr x weight decay x batch combinations")
     sub.add_argument("--final-test", action="store_true", help="Then retrain and evaluate once on the test split")
 
     sub = command("test", "Final retrain on train + validation and the single evaluation on the test split.")
@@ -100,7 +99,7 @@ def main(argv=None):
         config = (load_config(args.config) if args.config.is_file() else TrainConfig()).updated(**_parse_overrides(args.set))
         run = workflow.Run(args.run)
         _setup(device)
-        checkpoint = workflow.develop(config, args.dataset, run, device, search=args.search)
+        checkpoint = workflow.develop(config, args.dataset, run, device)
         print("\nValidation: choosing NMS IoU and operating confidence", flush=True)
         workflow.validate(checkpoint, args.dataset, run, device, batch=config.batch)
         if args.final_test:

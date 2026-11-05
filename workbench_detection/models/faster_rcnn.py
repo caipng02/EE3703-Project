@@ -1,4 +1,4 @@
-"""Faster R-CNN with a ResNet-18 backbone (Person 2): region proposal network, RoI head, losses and decoding.
+"""Faster R-CNN with a ResNet-18 backbone: region proposal network, RoI head, losses and decoding.
 
 Stage 1, the RPN, scores every anchor as object or background and refines it into a proposal; NMS keeps the best
 proposals. Stage 2, the RoI head, pools each proposal's features (RoIAlign), then classifies it as background,
@@ -15,30 +15,29 @@ from torchvision.models.detection.anchor_utils import AnchorGenerator
 from torchvision.models.detection.image_list import ImageList
 
 # %% settings
-ANCHOR_PROFILES = {"original": (128, 256, 512), "small": (64, 128, 256, 512),
-                   "dense": (32, 64, 128, 256, 512),
-                   # half-octave steps (x1.41) from 16 px: the size between two dense sizes fits far better
-                   "half_octave": (16, 23, 32, 45, 64, 91, 128, 181, 256, 362, 512)}
-# Backbone features the RPN and RoI head use: "c4" = ResNet layer 3 (stride 16, 256 channels); "c5" = layer 4
-# (stride 32, 512 channels; Person 2's original model); "c3c4" = layer 3 upsampled and added to layer 2 (stride 8).
-FEATURE_STRIDES = {"c3c4": 8, "c4": 16, "c5": 32}
-# RoI head box offsets. "plain" (Person 2): raw offsets, smooth L1 with beta 1, weight lambda = 10. "standard"
-# (torchvision's Faster R-CNN): offsets scaled by (10, 10, 5, 5) and smooth L1 with beta 1/9, weight 1, so errors of
-# a few percent of the box size still give a full-size gradient. The RPN keeps the plain coding in both.
-BOX_CODERS = {"plain": {"weights": None, "beta": 1.0, "lambda": 10.0},
-              "standard": {"weights": (10.0, 10.0, 5.0, 5.0), "beta": 1 / 9, "lambda": 1.0}}
-ASPECT_RATIOS = (0.5, 1.0, 2.0)      # anchor height / width
-RPN_POSITIVE_IOU = 0.70             # an anchor overlapping an object above this IoU is foreground
+# Anchors: 11 sizes in half-octave steps (x1.41) from 16 to 512 px, so a box between two octave sizes still fits an
+# anchor well, and 5 aspect ratios (height / width) for long, thin tools: 55 anchors per feature cell.
+ANCHOR_SIZES = (16, 23, 32, 45, 64, 91, 128, 181, 256, 362, 512)
+ASPECT_RATIOS = (0.25, 0.5, 1.0, 2.0, 4.0)
+FEATURE_STRIDE = 8                  # layer 3 upsampled and added to layer 2: an 80 x 80 map for 640 x 640 images
+ROI_POOL = 7                        # RoIAlign output size (7 x 7)
+ROI_FC_LAYERS = 2                   # fully connected layers of 1024 in the RoI head
+# RoI head box offsets are scaled by these weights and trained with smooth L1 at beta 1/9 (torchvision's Faster
+# R-CNN), so errors of a few percent of the box size still give a full-size gradient. The RPN uses raw offsets.
+BOX_WEIGHTS = (10.0, 10.0, 5.0, 5.0)
+BOX_BETA = 1 / 9
+RPN_BOX_LAMBDA = 10.0               # weight of the RPN box loss
+RPN_POSITIVE_IOU = 0.60             # an anchor overlapping an object above this IoU is foreground
 RPN_NMS_IOU = 0.70
 FINAL_NMS_IOU = 0.50
-TRAIN_PROPOSALS = 300
+TRAIN_PROPOSALS = 600
 INFERENCE_PROPOSALS = 600
 
 
 # %% model
 class RPN(nn.Module):
 
-    def __init__(self, in_channels=512, num_anchors=9):
+    def __init__(self, in_channels=256, num_anchors=55):
         super().__init__()
 
         # Intermediate 3x3 convolution
@@ -68,7 +67,8 @@ class RPN(nn.Module):
 
 class Stage2_network(nn.Module):
 
-    def __init__(self, in_channels=512, num_classes=4, *, stride=32, pool_size=7, fc_layers=1):
+    def __init__(self, in_channels=256, num_classes=4, *, stride=FEATURE_STRIDE, pool_size=ROI_POOL,
+                 fc_layers=ROI_FC_LAYERS):
         super().__init__()
 
         # Region of Interest (RoI) Align
@@ -79,11 +79,10 @@ class Stage2_network(nn.Module):
             aligned=True
         )
 
-        # Fully connected layers (Person 2: one; torchvision's Faster R-CNN head: two)
+        # Fully connected layers of 1024 (two, as in torchvision's Faster R-CNN head)
         layers, width = [], in_channels * pool_size ** 2
         for _ in range(fc_layers):
-            layers += [nn.Linear(in_features=width, out_features=1024),
-                       nn.LeakyReLU(0.01) if stride < 32 else nn.ReLU()]
+            layers += [nn.Linear(in_features=width, out_features=1024), nn.LeakyReLU(0.01)]
             width = 1024
         self.fc = nn.Sequential(*layers)
 
@@ -107,11 +106,6 @@ class Stage2_network(nn.Module):
 
         return self.cls_score(x), self.bbox_head(x)
 
-def default_features(anchor_scales):
-    """Features of checkpoints saved before `features` existed: the dense anchors meant layer 3, others layer 4."""
-    return "c4" if tuple(anchor_scales) == ANCHOR_PROFILES["dense"] else "c5"
-
-
 class FPNMerge(nn.Module):
     """Layer 3 (stride 16) upsampled and added to a 1x1 projection of layer 2 (stride 8), then a 3x3 smoothing
     convolution: the stride-8 map keeps layer 2's position detail and layer 3's semantics (one FPN level)."""
@@ -128,43 +122,27 @@ class FPNMerge(nn.Module):
 
 class FasterRCNN_Modular(nn.Module):
 
-    def __init__(self, num_classes, pretrained=True, *, anchor_scales=ANCHOR_PROFILES["original"],
-                 aspect_ratios=ASPECT_RATIOS, features=None, pool_size=None, roi_fc_layers=1, roi_box_coder="plain"):
+    def __init__(self, num_classes, pretrained=True):
         super().__init__()
-        self.features = features or default_features(anchor_scales)
-        if self.features not in FEATURE_STRIDES:
-            raise ValueError(f"Unknown features {self.features!r}; use one of {sorted(FEATURE_STRIDES)}.")
-        # "dense" = Person 2's improved path (finer features, more proposals, balanced losses); c5 is the original.
-        self.dense = self.features != "c5"
-        stride = FEATURE_STRIDES[self.features]
-        self.pool_size = pool_size or (5 if self.dense else 7)
-        self.roi_fc_layers = roi_fc_layers
-        if roi_box_coder not in BOX_CODERS:
-            raise ValueError(f"Unknown roi_box_coder {roi_box_coder!r}; use one of {sorted(BOX_CODERS)}.")
-        self.roi_box_coder = roi_box_coder
 
         # STEP 2.3. CNN Backbone
         backbone_model = resnet18(
             weights=ResNet18_Weights.DEFAULT if pretrained else None
         )
 
-        # Layer 3's stride-16 map (c4) for small tools; layer 4 (c5) for previously trained stride-32
-        # checkpoints; or layers 2 + 3 merged at stride 8 (c3c4). Module names keep old checkpoints loadable.
+        # ResNet-18 up to layer 2 (stride 8, 128 channels) and layer 3 (stride 16, 256 channels), merged by the neck
+        # into one stride-8 map with 256 channels.
         children = list(backbone_model.children())
-        self.neck = None
-        if self.features == "c3c4":
-            self.backbone = nn.Sequential(*children[:6])   # stem + layers 1-2: stride 8, 128 channels
-            self.backbone_top = children[6]                # layer 3: stride 16, 256 channels
-            self.neck = FPNMerge(128, 256)
-        else:
-            self.backbone = nn.Sequential(*children[:7 if self.features == "c4" else 8])
-        channels = 512 if self.features == "c5" else 256
+        self.backbone = nn.Sequential(*children[:6])   # stem + layers 1-2
+        self.backbone_top = children[6]                # layer 3
+        self.neck = FPNMerge(128, 256)
+        channels = 256
 
         # STEP 2.4. Anchor Generator
         # Use the same anchor count in the generator and both RPN heads.
         self.anchor_generator = AnchorGenerator(
-          sizes=(tuple(anchor_scales),),
-          aspect_ratios=(tuple(aspect_ratios),)
+          sizes=(ANCHOR_SIZES,),
+          aspect_ratios=(ASPECT_RATIOS,)
         )
 
         # Assemble RPN and Stage 2 detector
@@ -176,22 +154,19 @@ class FasterRCNN_Modular(nn.Module):
         self.stage2 = Stage2_network(
             in_channels=channels,
             num_classes=num_classes,
-            stride=stride,
-            pool_size=self.pool_size,
-            fc_layers=roi_fc_layers,
         )
-        if self.dense:
-            for layer in (self.rpn.cls_logits, self.rpn.bbox_pred,
-                          self.stage2.cls_score, self.stage2.bbox_head):
-                nn.init.normal_(layer.weight, std=0.01)
-                nn.init.zeros_(layer.bias)
+        # Small initial weights for the output layers: objectness and class scores start near uniform
+        for layer in (self.rpn.cls_logits, self.rpn.bbox_pred,
+                      self.stage2.cls_score, self.stage2.bbox_head):
+            nn.init.normal_(layer.weight, std=0.01)
+            nn.init.zeros_(layer.bias)
 
     def pretrained_parts(self):
         """The ResNet-18 layers (ImageNet weights); the neck, RPN and RoI head are trained from scratch."""
-        return [self.backbone] + ([self.backbone_top] if self.neck is not None else [])
+        return [self.backbone, self.backbone_top]
 
     def new_parts(self):
-        return ([self.neck] if self.neck is not None else []) + [self.rpn, self.stage2]
+        return [self.neck, self.rpn, self.stage2]
 
     def forward(self, images):
 
@@ -209,9 +184,8 @@ class FasterRCNN_Modular(nn.Module):
         )
 
         # 1. Feature extraction
-        features = self.backbone(image_list.tensors)
-        if self.neck is not None:
-            features = self.neck(features, self.backbone_top(features))
+        fine = self.backbone(image_list.tensors)
+        features = self.neck(fine, self.backbone_top(fine))
 
         # 2. Anchor generation
         anchors = self.anchor_generator(
@@ -235,7 +209,7 @@ def calculate_transforms(ref_boxes, gt_boxes, weights=None):
     """
     Converts absolute bounding box coordinates (xmin, ymin, xmax, ymax)
     into target transforms (t_x, t_y, t_w, t_h) relative to
-    reference boxes (anchors or proposals); `weights` scales the four offsets (BOX_CODERS).
+    reference boxes (anchors or proposals); `weights` scales the four offsets (BOX_WEIGHTS for the RoI head).
     """
 
     # 1. Reference box dimensions and centres
@@ -357,18 +331,18 @@ def _create_rpn_labels(
 def _calculate_rpn_losses(
     rpn_cls_flat, rpn_reg_flat, rpn_labels, valid_mask_rpn,
     pos_mask_rpn, N_rpn, anchors_per_img, gt_boxes,
-    matched_gt_indices_rpn, lambda_val, device, balanced=False
+    matched_gt_indices_rpn, lambda_val, device
 ):
 
-    if balanced:
-        positive = torch.where(pos_mask_rpn)[0]
-        negative = torch.where(rpn_labels == 0)[0]
-        positive = positive[torch.randperm(len(positive), device=device)[:128]]
-        negative = negative[torch.randperm(len(negative), device=device)[:256 - len(positive)]]
-        sampled = torch.cat((positive, negative))
-        valid_mask_rpn = sampled
-        pos_mask_rpn = positive
-        N_rpn = max(len(sampled), 1)
+    # Sample 256 anchors per image, at most half foreground, so background does not dominate
+    positive = torch.where(pos_mask_rpn)[0]
+    negative = torch.where(rpn_labels == 0)[0]
+    positive = positive[torch.randperm(len(positive), device=device)[:128]]
+    negative = negative[torch.randperm(len(negative), device=device)[:256 - len(positive)]]
+    sampled = torch.cat((positive, negative))
+    valid_mask_rpn = sampled
+    pos_mask_rpn = positive
+    N_rpn = max(len(sampled), 1)
 
     # RPN Classification Loss (Binary Cross-Entropy)
     if rpn_cls_flat[valid_mask_rpn].numel():
@@ -450,11 +424,8 @@ def _create_roi_labels(
 def _calculate_roi_losses(
     roi_cls, roi_reg, roi_target_labels, pos_mask_roi,
     N_roi, proposals_per_img, gt_boxes, matched_gt_idx,
-    lambda_val, device, balanced=False, box_coder="plain"
+    device
 ):
-    coder = BOX_CODERS[box_coder]
-    if box_coder != "plain":
-        lambda_val = coder["lambda"]
 
     # If no proposals, return zero loss
     if N_roi == 0:
@@ -463,7 +434,7 @@ def _calculate_roi_losses(
     # RoI Classification Loss (Cross-Entropy)
     class_losses = F.cross_entropy(roi_cls, roi_target_labels, reduction="none")
     loss_roi_cls = class_losses.mean()
-    if balanced and pos_mask_roi.any() and (~pos_mask_roi).any():
+    if pos_mask_roi.any() and (~pos_mask_roi).any():  # foreground and background weighted equally
         loss_roi_cls = 0.5 * (class_losses[pos_mask_roi].mean() +
                               class_losses[~pos_mask_roi].mean())
 
@@ -498,28 +469,28 @@ def _calculate_roi_losses(
         target_transforms_roi = calculate_transforms(
             proposals_per_img[pos_mask_roi],
             target_gt_boxes_for_pos_roi,
-            coder["weights"]
+            BOX_WEIGHTS
         )
 
         loss_roi_reg = F.smooth_l1_loss(
             pred_boxes_for_pos_roi,
             target_transforms_roi,
             reduction='sum',
-            beta=coder["beta"]
+            beta=BOX_BETA
         )
 
     else:
         loss_roi_reg = torch.tensor(0.0, device=device)
 
     # Total RoI loss
-    roi_loss = loss_roi_cls + lambda_val * loss_roi_reg / N_roi
+    roi_loss = loss_roi_cls + loss_roi_reg / N_roi
 
     return roi_loss
 
 def compute_unified_loss_per_img(
     rpn_cls, rpn_reg, roi_cls, roi_reg,
     anchors_per_img, proposals_per_img,
-    targets, lambda_val=10.0, *, balanced_rpn=False, rpn_positive_iou=RPN_POSITIVE_IOU, roi_box_coder="plain"
+    targets, *, rpn_positive_iou=RPN_POSITIVE_IOU
 ):
 
     device = rpn_cls.device
@@ -559,8 +530,8 @@ def compute_unified_loss_per_img(
         anchors_per_img,
         gt_boxes,
         matched_gt_indices_rpn,
-        lambda_val,
-        device, balanced=balanced_rpn
+        RPN_BOX_LAMBDA,
+        device
     )
 
     # STEP 3.5. Match RoIs to ground truth
@@ -587,8 +558,7 @@ def compute_unified_loss_per_img(
         proposals_per_img,
         gt_boxes,
         matched_gt_idx,
-        lambda_val,
-        device, balanced=balanced_rpn, box_coder=roi_box_coder
+        device
     )
 
     # Unified Faster R-CNN loss
@@ -683,12 +653,12 @@ def filter_proposals(rpn_cls, rpn_reg, curr_anchors, image_size=(640, 640), *, l
         return refined_boxes[keep_idx], top_scores[keep_idx].sigmoid()
 
 
-def decode_detections(proposals, probabilities, regression, image_size, score_floor, *, limit=20, box_coder="plain"):
+def decode_detections(proposals, probabilities, regression, image_size, score_floor, *, limit=100):
     boxes_out, scores_out, labels_out = [], [], []
     for label in range(1, 4):
         scores = probabilities[:, label]
         keep = scores >= score_floor
-        boxes = decode_boxes(proposals[keep], regression[keep, label - 1], image_size, BOX_CODERS[box_coder]["weights"])
+        boxes = decode_boxes(proposals[keep], regression[keep, label - 1], image_size, BOX_WEIGHTS)
         scores = scores[keep]
         valid = torch.isfinite(boxes).all(1) & ((boxes[:, 2:] - boxes[:, :2]) > 2).all(1)
         boxes, scores = boxes[valid], scores[valid]

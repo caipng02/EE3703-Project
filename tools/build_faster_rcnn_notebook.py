@@ -1,24 +1,17 @@
-"""Build FasterRCNN_Project.ipynb: the Faster R-CNN project as one self-contained, narrative notebook.
+"""Build FasterRCNN_Project.ipynb: the selected Faster R-CNN as one self-contained, narrative notebook.
 
-Same structure as YOLO_Project.ipynb (tools/build_notebook.py): the shared data pipeline and evaluator, then
-Person 2's Faster R-CNN (models/faster_rcnn.py) and its training / validation / final-test engine
-(engine/faster_rcnn.py), with an explanation before each part and a figure or table after it.
+Same structure as YOLO_Project.ipynb (tools/build_notebook.py): the shared data pipeline and evaluator, then the
+Faster R-CNN (models/faster_rcnn.py) and its training / validation / final-test engine (engine/faster_rcnn.py),
+with an explanation before each part and a figure or table after it. The comparison runs that led to this recipe
+are kept as their own notebooks in experiments/ (their code embedded) and in development_record.md.
 
-    python tools/build_faster_rcnn_notebook.py               # FasterRCNN_Project.ipynb
-    python tools/build_faster_rcnn_notebook.py --experiment  # experiments/FasterRCNN_screwdriver_experiment.ipynb
-    python tools/build_faster_rcnn_notebook.py --boxfix      # experiments/FasterRCNN_boxfix_experiment.ipynb
+    python tools/build_faster_rcnn_notebook.py
 """
-
-import sys
 
 from notebook_parts import ROOT, check_and_write, code, md, read_modules
 
-BOXFIX = "--boxfix" in sys.argv[1:]
-EXPERIMENT = BOXFIX or "--experiment" in sys.argv[1:]
-OUTPUT = ROOT / ("experiments/FasterRCNN_boxfix_experiment.ipynb" if BOXFIX else
-                 "experiments/FasterRCNN_screwdriver_experiment.ipynb" if EXPERIMENT else "FasterRCNN_Project.ipynb")
-DEFAULT_TRIAL = '"stride8_v3"' if BOXFIX else '"stride8_v2"' if EXPERIMENT else '"stride8"'
-DEFAULT_SOURCE = "None"
+OUTPUT = ROOT / "FasterRCNN_Project.ipynb"
+SELECTED_RUN = "frcnn_stride8_v3_20261105_1338"  # the selected run, resumed for the final test
 MODULES = ["config.py", "boxes.py", "data/dataset.py", "data/transforms.py", "data/augment.py", "data/sampling.py",
            "models/faster_rcnn.py", "evaluation/records.py", "evaluation/metrics.py", "evaluation/protocol.py",
            "evaluation/report.py", "evaluation/benchmark.py", "engine/trainer.py", "engine/workflow.py",
@@ -79,24 +72,7 @@ the same as in `YOLO_Project.ipynb`, so the two detectors are compared on equal 
 once, at the end, after retraining on train + validation with the frozen settings.
 
 **Running it.** On Colab: Runtime → Change runtime type → **T4 GPU**, then Runtime → Run all, and upload
-`dataset.zip` (from the repository root) when asked. Every setting is in the *Settings* cell of section 1. The final
-test is off until `RUN_FINAL_TEST = True`.
-"""))
-if BOXFIX:
-    add(md("""
-> **Box-fix experiment (5 Nov).** Built from the same package as `FasterRCNN_Project.ipynb`. Trains
-> `TRIAL = "stride8_v3"` (section 1): `stride8_v2` with the RoI head's box offsets coded as in torchvision and
-> background RoIs drawn mostly from partial boxes. Aimed at `stride8_v2`'s errors: 125 of its 213 false positives
-> at confidence 0.4 were localization errors (right class, IoU 0.1-0.5 with the object). Results are recorded in
-> `development_record.md`.
-"""))
-elif EXPERIMENT:
-    add(md("""
-> **Screwdriver experiment (5 Nov).** Built from the same package as `FasterRCNN_Project.ipynb`, with settings for
-> the screwdriver trials (section 1). By default it trains `TRIAL = "stride8_v2"`; validation then also chooses the
-> number of anchors kept before RPN NMS. For the mosaic variant set `TRIAL = "stride8_v2_mosaic"`. To re-validate
-> the `stride8` run's checkpoint without training, set `SOURCE_RUN = "frcnn_stride8_20261105_0852"`. Results are
-> recorded in `development_record.md`.
+`dataset.zip` (from the repository root) when asked. Every setting is in the *Settings* cell of section 1.
 """))
 
 # 1 Setup
@@ -118,71 +94,43 @@ saved with the run and inside each checkpoint, so the final retrain uses exactly
 add(src("config.py", "constants"))
 add(src("models/faster_rcnn.py", "settings", title="Faster R-CNN constants"))
 add(src("engine/faster_rcnn.py", "config"))
-add(md("""
+SETTINGS_MD = """
 ### Settings
-The only cell to edit. `TRIAL` picks the recipe:
+The selected Faster R-CNN recipe, chosen on validation (the comparison runs are documented in the report). On top
+of the ResNet-18 Faster R-CNN described in section 4:
 
-* **`"baseline"`**: Person 2's development recipe (`FasterRCNNConfig()`), measured at 26.6% validation AP50 on
-  Person 2's branch, where the RPN covered only 2 of 47 validation screwdrivers in its top 100 proposals.
-* **`"accuracy"`**: the same architecture with changes aimed at that weakness: longer training (up to 60 epochs with
-  early stopping after 10 without improvement, as in the proposal) with warmup and cosine decay at a higher learning rate; anchor ratios 0.25 and 4 for long, thin tools; RPN foreground from IoU 0.6
-  instead of 0.7 (thin objects rarely reach 0.7 with any anchor); and 128 RoIs per image for the RoI head
-  (up to 32 foreground) instead of 32 (up to 8), from 600 training proposals.
-* **`"anchors"`**: the accuracy trial with anchor sizes in half-octave steps (16, 23, 32, 45 ... 512 px, 11 sizes
-  instead of 5) and RoIAlign 7 × 7 instead of 5 × 5. With the dense sizes, a box between two sizes fits no anchor well:
-  only 30 of 47 validation screwdrivers have an anchor at IoU ≥ 0.6 (43 with half-octave sizes). 7 × 7 pooling gives
-  the RoI head more detail of thin tools, which it misnamed 10 of 47 times even on the exact box.
-* **`"stride8"`**: the `"anchors"` trial on a stride-8 map (80 × 80): layer 3 upsampled and added to layer 2, as one
-  level of a feature pyramid, so thin tools cover more feature cells (46 of 47 validation screwdrivers have an
-  anchor at IoU ≥ 0.6). About 1.5 times slower per image. Validation AP50 0.769 (run `frcnn_stride8_20261105_0852`).
-* **`"stride8_v2"`**: `"stride8"` with changes aimed at screwdrivers (validation AP50 0.505, precision 0.378):
-  a second fully connected layer in the RoI head (torchvision's design) to separate screwdrivers from look-alikes;
-  24,000 anchors before RPN NMS in training instead of 6,000, so the RoI head trains on proposals for weakly scored
-  screwdrivers; and an exponential moving average of the weights (as in YOLOv2) for validation and checkpoints,
-  against the epoch-to-epoch swings of up to 0.09 in `"stride8"`'s validation AP50.
-* **`"stride8_v2_mosaic"`**: `"stride8_v2"` with 4-image mosaics for half the training samples (YOLOv2's recipe):
-  more, smaller objects per image.
-* **`"stride8_v3"`**: `"stride8_v2"` with two fixes for its localization errors (125 of 213 false positives: the
-  right class but a partial box). The RoI head's box offsets are scaled by (10, 10, 5, 5) and trained with smooth
-  L1 at beta 1/9 (torchvision's Faster R-CNN), so errors of a few percent of the box still give a full gradient;
-  before, raw offsets with beta 1 gave small errors almost none. And 75% of the background RoIs are partial boxes
-  (IoU 0.1-0.5 with an object, Fast R-CNN's background range), so the head learns to score them low.
+* **Training schedule**: up to 60 epochs with early stopping after 10 without improvement; SGD at lr 1e-3 (RPN
+  and RoI head 4×) with a 1-epoch warmup and cosine decay; an exponential moving average of the weights is used for
+  validation and checkpoints.
+* **Features and anchors**: a stride-8 map (layer 3 upsampled and added to layer 2) and anchors of 11 sizes from
+  16 to 512 px in ×1.41 steps × 5 aspect ratios (0.25 to 4), so thin screwdrivers fit an anchor and cover several
+  feature cells.
+* **RPN**: anchors above IoU 0.6 with an object are foreground; in training, 600 proposals per image are kept from
+  the 24,000 highest-scoring anchors.
+* **RoI head**: RoIAlign 7 × 7 and two fully connected layers of 1024; box offsets scaled by (10, 10, 5, 5) and
+  trained with smooth L1 at beta 1/9; 128 RoIs per image (up to 32 foreground), with 75% of the background RoIs
+  taken from partial boxes (IoU 0.1–0.5 with an object).
 
-The recipe with the highest validation AP50 is kept for the final test. Validation also chooses how many
-top-scoring anchors enter RPN NMS (6,000 to 48,000; before, always 6,000), with the RPN NMS IoU.
-
-**`SOURCE_RUN`** re-runs validation (with that choice) on a finished run's trained checkpoint without retraining,
-in a new run folder; its final test then retrains that run's configuration. Leave it `None` to train `TRIAL`.
-
-Every stage saves its results in the run folder (Google Drive on Colab) and is skipped when re-run if it has already
-finished. **After a disconnect**, set `RESUME_RUN` to the run folder's name (printed below) and Run all. **For the
-final test**, once the validation results are good, set `RUN_FINAL_TEST = True` (with `RESUME_RUN` if the session has
-restarted) and Run all again.
-"""))
-add(code("""
-TRIALS = {
-    "baseline": FasterRCNNConfig(),  # dense anchors on stride-16 features, SGD lr 5e-4 (heads 4x), batch 2, 10 epochs
-    "accuracy": FasterRCNNConfig(epochs=60, lr=1e-3, lr_schedule="cosine", warmup_epochs=1.0,
-                                 aspect_ratios=(0.25, 0.5, 1.0, 2.0, 4.0), rpn_positive_iou=0.6,
-                                 train_proposals=600, roi_samples=128, roi_foreground=32),
-}
-TRIALS["anchors"] = FasterRCNNConfig.from_dict({**TRIALS["accuracy"].to_dict(), "anchor_profile": "half_octave",
-                                                "roi_pool": 7})
-TRIALS["stride8"] = FasterRCNNConfig.from_dict({**TRIALS["anchors"].to_dict(), "features": "c3c4"})
-TRIALS["stride8_v2"] = FasterRCNNConfig.from_dict({**TRIALS["stride8"].to_dict(), "roi_fc_layers": 2,
-                                                   "train_pre_nms": 24000, "ema": True})
-TRIALS["stride8_v2_mosaic"] = FasterRCNNConfig.from_dict({**TRIALS["stride8_v2"].to_dict(), "mosaic": 0.5})
-TRIALS["stride8_v3"] = FasterRCNNConfig.from_dict({**TRIALS["stride8_v2"].to_dict(), "roi_box_coder": "standard",
-                                                   "roi_hard_negatives": 0.75})
-TRIAL = """ + DEFAULT_TRIAL + """        # "stride8_v2", "stride8_v2_mosaic", "stride8_v3"; "accuracy" is the 4 Nov run
-SOURCE_RUN = """ + DEFAULT_SOURCE + """   # a finished run to re-validate without training, or None to train TRIAL
-CONFIG = TRIALS[TRIAL]
-RUN_FINAL_TEST = False       # the single evaluation on the 50 original test photos; leave False until settings are final
+Every stage saves its results in the run folder (Google Drive on Colab) and is skipped when re-run if it has
+already finished. `RESUME_RUN` names the selected run: its development training and validation are loaded, then
+the final retrain on train + validation and the single test run (`RUN_FINAL_TEST = True`). A finished test is never
+repeated. `RESUME_RUN = None` trains the recipe from scratch in a new run folder.
+"""
+SETTINGS_CODE = """
+CONFIG = FasterRCNNConfig(
+    epochs=60, patience=10, lr=1e-3, head_lr_factor=4.0, lr_schedule="cosine", warmup_epochs=1.0, ema=True,  # schedule
+    rpn_positive_iou=0.6, train_proposals=600, train_pre_nms=24000,                                       # RPN
+    roi_samples=128, roi_foreground=32, roi_hard_negatives=0.75)                                          # RoI sampling
+RUN_FINAL_TEST = True        # the single evaluation on the 50 original test photos
 SAVE_TO_DRIVE = True         # on Colab, keep the run in Google Drive in case the session disconnects
 DATASET = Path("/content/dataset") if Path("/content").is_dir() else Path("dataset")
-RESUME_RUN = None            # e.g. "frcnn_accuracy_20261104_2130" to continue an earlier run
-RUN_NAME = RESUME_RUN or (f"{SOURCE_RUN}_revalidated" if SOURCE_RUN else
-                          f"frcnn_{TRIAL}_" + datetime.now().strftime("%Y%m%d_%H%M"))
+RESUME_RUN = "SELECTED_RUN"   # the selected run; None trains the recipe again
+RUN_NAME = RESUME_RUN or "frcnn_stride8_v3_" + datetime.now().strftime("%Y%m%d_%H%M")
+""".replace("SELECTED_RUN", SELECTED_RUN)
+
+add(md(SETTINGS_MD))
+settings_code = SETTINGS_CODE
+add(code(settings_code.strip("\n") + """
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IN_COLAB = "google.colab" in sys.modules
@@ -203,7 +151,7 @@ else:
 seed_everything()
 print(f"Device: {DEVICE}" + (f" ({torch.cuda.get_device_name(0)})" if DEVICE.type == "cuda" else ""))
 print(f"Dataset: {DATASET} | run folder: {RUNS / RUN_NAME}")
-print(f"Trial: {TRIAL} | configuration:", CONFIG.to_dict())
+print("Configuration:", CONFIG.to_dict())
 """))
 
 # 2 Data
@@ -272,25 +220,24 @@ Box utilities used by the evaluator (IoU of two boxes and format conversion).
 """))
 add(src("boxes.py", "box-ops"))
 add(md("""
-**Architecture.** A ResNet-18 backbone (ImageNet weights) produces a feature map. By default (`features` `c4`) it
-stops after layer 3 (stride 16, 256 channels, a 40 × 40 map) so small screwdrivers cover several feature cells.
-`c3c4` (the `stride8` trial) upsamples layer 3 and adds it to a 1 × 1 projection of layer 2, then smooths the sum
-with a 3 × 3 convolution: a stride-8, 80 × 80 map. `c5`, layer 4 at stride 32, is Person 2's original model.
+**Architecture.** A ResNet-18 backbone (ImageNet weights) produces the feature map. Layer 3 (stride 16, 256
+channels) is upsampled and added to a 1 × 1 projection of layer 2 (stride 8, 128 channels), then smoothed by a 3 × 3
+convolution (one level of a feature pyramid): an 80 × 80 map with 256 channels, so thin screwdrivers cover several
+feature cells.
 
-* **Anchors**: at every feature cell, one box per size × aspect ratio (dense: 5 sizes 32–512 px × ratios 0.5/1/2 = 15;
-  the accuracy trial adds ratios 0.25 and 4, giving 25; half-octave sizes give 11 × 5 = 55).
+* **Anchors**: at every feature cell, one box per size × aspect ratio: 11 sizes from 16 to 512 px in ×1.41 steps ×
+  5 ratios (0.25, 0.5, 1, 2, 4) = 55 anchors per cell, 352,000 per image.
 * **RPN**: a 3×3 convolution, then per anchor one objectness score and four box offsets.
-* **RoI head**: RoIAlign pools each proposal to `roi_pool` × `roi_pool` features (default 5 × 5 on c4, 7 × 7 on c5); a fully connected layer of 1024
-  units feeds a 4-way classifier (background + 3 tools) and class-specific box offsets.
+* **RoI head**: RoIAlign pools each proposal to 7 × 7 features; two fully connected layers of 1024 units feed a
+  4-way classifier (background + 3 tools) and class-specific box offsets.
 """))
 add(src("models/faster_rcnn.py", "model"))
 add(code("""
-model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=CONFIG.pretrained_backbone, **CONFIG.model_settings())
-parts = {"backbone (ResNet-18)": model.pretrained_parts(), "feature merge (stride 8)": [model.neck] if model.neck else [],
+model = FasterRCNN_Modular(len(CLASSES) + 1, pretrained=CONFIG.pretrained_backbone)
+parts = {"backbone (ResNet-18 to layer 3)": model.pretrained_parts(), "feature merge (stride 8)": [model.neck],
          "RPN": [model.rpn], "RoI head": [model.stage2]}
 for name, module in parts.items():
-    if module:
-        print(f"{name}: {sum(p.numel() for part in module for p in part.parameters()):,} parameters")
+    print(f"{name}: {sum(p.numel() for part in module for p in part.parameters()):,} parameters")
 image, target = train_set[scissor_image]
 with torch.no_grad():
     features, anchors, rpn_cls, rpn_reg = model.eval()([image])
@@ -302,15 +249,15 @@ print(f"Feature map {tuple(features.shape)} | {len(anchors[0]):,} anchors | RPN 
 add(md("""
 ## 5. Loss and decoding
 
-**RPN loss.** An anchor is foreground if it overlaps a ground-truth box above `CONFIG.rpn_positive_iou` (0.7, or 0.6 in
-the accuracy trial), background below 0.3, and ignored
-in between; each object's best-matching anchor is always foreground. Objectness uses binary cross-entropy and box
-offsets smooth L1 (positives only). With the dense profile, 256 anchors are sampled per image (at most half
-foreground) to balance the two.
+**RPN loss.** An anchor is foreground if it overlaps a ground-truth box above `CONFIG.rpn_positive_iou` (0.6),
+background below 0.3, and ignored in between; each object's best-matching anchor is always foreground. 256 anchors
+are sampled per image (at most half foreground) to balance the two. Objectness uses binary cross-entropy and box
+offsets smooth L1 (positives only), weighted by λ = 10.
 
 **RoI loss.** Proposals overlapping an object at IoU > 0.5 take its class, the rest are background. Classification
-uses cross-entropy (balanced between foreground and background with the dense profile) and box offsets smooth L1 for
-the true class. The total loss is RPN + RoI, with box terms weighted by λ = 10.
+uses cross-entropy, with foreground and background weighted equally. Box offsets for the true class are scaled by
+(10, 10, 5, 5) and trained with smooth L1 at β = 1/9 (torchvision's coding), so errors of a few percent of the box
+size still give a full gradient. The total loss is RPN + RoI.
 """))
 add(src("models/faster_rcnn.py", "loss"))
 add(code("""
@@ -320,10 +267,10 @@ print(f"{target['file_name']}: {len(target['boxes'])} objects -> {int((labels ==
       f"{int((labels == 0).sum()):,} background and {int((labels == -1).sum()):,} ignored anchors")
 """))
 add(md("""
-**Decoding.** RPN offsets turn anchors into proposals; the 10 × limit highest-scoring go through NMS at the RPN NMS
-IoU (0.70 during training; 0.50 or 0.70 chosen on validation), and the best 600 (dense) are kept. The RoI head then
-scores each proposal per class; scores are multiplied by √(RPN objectness) with the dense profile, and class-wise NMS
-at IoU 0.50 removes duplicates.
+**Decoding.** RPN offsets turn anchors into proposals. The highest-scoring anchors (24,000 in training; at inference
+6,000 to 48,000, chosen on validation) go through NMS at the RPN NMS IoU (0.70 in training; 0.50 or 0.70 chosen on
+validation), and the best 600 are kept. The RoI head then scores each proposal per class; scores are multiplied by
+√(RPN objectness), and class-wise NMS at IoU 0.50 removes duplicates.
 """))
 add(src("models/faster_rcnn.py", "decoding"))
 add(code("""
@@ -368,13 +315,13 @@ analysis and the demo, so they all share the same preprocessing, decoding and th
 """))
 add(src("engine/faster_rcnn.py", "detector"))
 add(md("""
-**The training loop** (Person 2's recipe). Each image goes through the network on its own: the RPN proposes
+**The training loop.** Each image goes through the network on its own: the RPN proposes
 `train_proposals` boxes, the ground-truth boxes are added, and `roi_samples` RoIs are sampled (at most `roi_foreground`
-foreground) for the RoI head. SGD with momentum 0.9; with the dense profile the RPN and RoI head learn 4× faster than
-the backbone, the backbone's BatchNorm statistics stay fixed (one image per forward pass is too few to estimate them),
-and gradients are clipped at norm 5. The learning rate is constant (baseline) or warms up and then follows a cosine
-decay to 5% (accuracy trial; the same schedule as YOLOv2). Validation AP50 is measured every epoch; the best epoch is
-kept.
+foreground, 75% of the background from partial boxes) for the RoI head. SGD with momentum 0.9; the feature merge,
+RPN and RoI head learn 4× faster than the backbone, the backbone's BatchNorm statistics stay fixed (one image per forward pass is too few to estimate them),
+and gradients are clipped at norm 5. The learning rate warms up for one epoch, then follows a cosine decay to 5%
+(the same schedule as YOLOv2). Validation AP50 is measured every epoch on the averaged (EMA) weights; the best epoch
+is kept.
 """))
 add(src("engine/trainer.py", "loader", "schedule", title="data loaders and learning-rate schedule (shared with YOLOv2)"))
 add(src("engine/faster_rcnn.py", "train"))
@@ -384,26 +331,33 @@ add(src("engine/faster_rcnn.py", "workflow"))
 add(src("visualize.py", "result-figures", title="figures for training and results"))
 add(md("### Software check\nOne update and one evaluation on 8 training images, to confirm that boxes, class IDs, model and evaluator "
        "connect before the long run. Its scores are not results."))
+SOFTWARE_CHECK_LOADED = """
+    saved = RUN.root / "software_check" / "metrics.txt"
+    print("Training already finished in this run; its software check:\\n" + saved.read_text() if saved.is_file()
+          else "Training already finished in this run; software check skipped.")
+"""
 add(code("""
 RUN = FasterRCNNRun(RUNS / RUN_NAME)
-if SOURCE_RUN:
-    print(f"Re-validating {SOURCE_RUN}'s trained checkpoint; software check skipped.")
-elif RUN.trained_checkpoint() is None:
+if RUN.trained_checkpoint() is None:
     frcnn_software_check(DATASET, RUN.root / "software_check", DEVICE)
-else:
-    print("Training already finished in this run; software check skipped.")
-"""))
+else:""" + SOFTWARE_CHECK_LOADED))
 add(md("### Development training\nTrains on the 358 training images and validates on the 92 validation images every epoch."))
 add(code("""
-checkpoint = FasterRCNNRun(RUNS / SOURCE_RUN).trained_checkpoint() if SOURCE_RUN else RUN.trained_checkpoint()
-assert not SOURCE_RUN or checkpoint is not None, f"No finished training in {RUNS / SOURCE_RUN}"
-if checkpoint is None:
-    checkpoint = frcnn_develop(CONFIG, DATASET, RUN, DEVICE)
+checkpoint = RUN.trained_checkpoint()
+loaded = checkpoint is not None
+if loaded:
+    saved = torch.load(checkpoint, map_location="cpu", weights_only=True)
+    CONFIG = FasterRCNNConfig.from_dict(saved["config"])
+    print(f"Loaded finished training: {checkpoint} (best epoch {saved['best_epoch']})\\nSettings: {CONFIG.to_dict()}")
 else:
-    CONFIG = FasterRCNNConfig.from_dict(torch.load(checkpoint, map_location="cpu", weights_only=True)["config"])
-    print(f"Loaded finished training: {checkpoint}\\nSettings: {CONFIG.to_dict()}")
+    checkpoint = frcnn_develop(CONFIG, DATASET, RUN, DEVICE)
 with (Path(checkpoint).parent / "history.csv").open(encoding="utf-8") as handle:
     history = [{key: float(value) for key, value in row.items() if value != ""} for row in csv.DictReader(handle)]
+if loaded:  # the training log as it was printed, rebuilt from the saved per-epoch history
+    print("Training log (saved per-epoch history):")
+    for row in history:
+        print(f"epoch {int(row['epoch']):>3}/{CONFIG.epochs} | train_loss {row['train_loss']:.4f} | RoIs fg/bg "
+              f"{int(row['sampled_foreground'])}/{int(row['sampled_background'])} | val_AP50 {row['val_map50']:.4f}")
 plot_history(history, "Development")
 """))
 
@@ -433,7 +387,7 @@ print(f"Frozen settings: {settings.get('rpn_pre_nms', 6000)} anchors before RPN 
 plot_pr_curves(validation)
 """))
 add(md("""
-**Where objects are lost** (Person 2's diagnostics). For each validation object: does any RPN proposal cover it at
+**Where objects are lost.** For each validation object: does any RPN proposal cover it at
 IoU ≥ 0.5 (all proposals / top 100), and does the RoI head name the right class when given the exact ground-truth
 box? A class with low coverage is lost in the RPN; one with good coverage but low AP is lost in the RoI head.
 """))

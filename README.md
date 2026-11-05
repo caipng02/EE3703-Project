@@ -13,7 +13,7 @@ submitted YOLO notebook.
 ```
 dataset/ ──► data ──────────► models ─────────► engine.trainer ──► engine.predictor ──► evaluation
              letterbox,        YOLOv2/ResNet-18,  AdamW, cosine,     one detector for    COCO AP, P/R/F1,
-             augmentation,     anchors, loss,     EMA, search,       validation, test,   NMS/confidence
+             augmentation,     anchors, loss,     EMA,               validation, test,   NMS/confidence
              class-aware       decoding, NMS      checkpoints        GUI and demo        protocol, errors
              sampling
 ```
@@ -24,7 +24,7 @@ dataset/ ──► data ──────────► models ─────
 | `workbench_detection/boxes.py` | Box formats, IoU and NMS, shared by the model and evaluation |
 | `workbench_detection/data/` | Dataset, letterboxing, augmentation and mosaic, class-aware sampling |
 | `workbench_detection/models/` | YOLOv2 / ResNet-18, ImageNet initialization, anchors, decoding, loss |
-| `workbench_detection/engine/` | Training loop, hyperparameter search, predictor, experiment workflow |
+| `workbench_detection/engine/` | Training loops (YOLOv2, Faster R-CNN), predictors, experiment workflow |
 | `workbench_detection/evaluation/` | Ground-truth loading, metrics, validation protocol, reports, timing |
 | `workbench_detection/gui/` | Browser demo (upload, model choice, boxes with labels and confidences); the standalone copy for submission is <https://github.com/kemilii/EE3703-Group05-GUI> |
 | `workbench_detection/visualize.py` | Figures used by the notebook |
@@ -32,13 +32,13 @@ dataset/ ──► data ──────────► models ─────
 | `tools/build_notebook.py` | Regenerates `YOLO_Project.ipynb` from the package |
 | `tools/build_faster_rcnn_notebook.py` | Regenerates `FasterRCNN_Project.ipynb` from the package |
 | `tests/` | GUI and upload checks |
-| `experiments/` | Person 3's earlier standalone YOLOv2 experiments (round 2.2) |
+| `experiments/` | The development runs' notebooks (YOLOv2 and Faster R-CNN trials), each with the code it ran |
 
 ### Implementation boundary
 
 The YOLOv2 detection pipeline is written by the group from individual PyTorch layers: the ResNet-18 blocks,
 detection head and passthrough layer, k-means anchors, anchor assignment, box encoding and decoding, the loss,
-confidence filtering and class-wise NMS. So are the data pipeline, training loop, search and the evaluation
+confidence filtering and class-wise NMS. So are the data pipeline, training loop and the evaluation
 logic. Library code: ImageNet weights for the backbone (torchvision, allowed by the professor), AP50 and AP50:95
 (pycocotools), and PyTorch's layers, optimizer and autograd.
 
@@ -67,7 +67,6 @@ Everything runs through one command; each run keeps its settings, checkpoints an
 python -m workbench_detection inspect                          # 1-minute software check
 python -m workbench_detection train --run runs/v1              # develop + validate with configs/yolov2.yaml
 python -m workbench_detection train --run runs/v2 --set lr=3e-4 ema=false   # override settings
-python -m workbench_detection train --run runs/search --search 8            # the proposal's random search
 python -m workbench_detection test --run runs/v1               # final retrain + the single test evaluation
 python -m workbench_detection predict --run runs/v1 photo.jpg  # draw detections on your own photos
 python -m workbench_detection gui --run runs/v1                # browser demo at http://127.0.0.1:8765

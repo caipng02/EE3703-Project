@@ -4,10 +4,9 @@ A run lives in one folder:
     runs/<name>/config.yaml                      the training settings
     runs/<name>/work/<stage>/                    checkpoints, history.csv, evaluation_protocol.json
     runs/<name>/report/<stage>/                  metrics.txt, figures and example predictions
-Stages: train (or search), validation, final_train, test.
+Stages: train, validation, final_train, test.
 """
 
-import csv
 import shutil
 from pathlib import Path
 
@@ -25,7 +24,6 @@ from ..evaluation.records import load_ground_truth, load_json, save_json
 from ..models.loss import encode_targets
 from ..models.yolov2 import YOLOv2ResNet18, anchors_from_dataset
 from .predictor import YOLOv2Detector, load_checkpoint
-from .search import hyperparameter_search
 from .trainer import make_loader, make_scaler, train, training_step
 
 
@@ -70,11 +68,7 @@ class Run:
         return self.final_checkpoint() if self.final_checkpoint().is_file() else self.development_checkpoint()
 
     def trained_checkpoint(self):
-        """The development checkpoint if training (or the search) has finished in this run, else None."""
-        search = self.report("search") / "search.csv"
-        if search.is_file():
-            with search.open(encoding="utf-8") as handle:
-                return Path(max(csv.DictReader(handle), key=lambda row: float(row["best_map50"]))["checkpoint"])
+        """The development checkpoint if training has finished in this run, else None."""
         checkpoint = self.work("train") / "best.pt"
         return checkpoint if (self.work("train") / "history.csv").is_file() else None
 
@@ -121,14 +115,11 @@ def software_check(dataset_root, out_dir, device, batch=2):
                    split="contract", image_root=dataset_root / "contract" / "images", evaluation_purpose="software_check")
 
 
-def develop(config, dataset_root, run, device, search=0):
-    """Development training, or the hyperparameter search; returns the selected checkpoint."""
-    stage = "search" if search else "train"
-    run.ensure_fresh(stage)
+def develop(config, dataset_root, run, device):
+    """Development training; returns the checkpoint with the best validation AP50."""
+    run.ensure_fresh("train")
     save_config(config, run.root / "config.yaml")
-    if search:
-        return hyperparameter_search(config, search, dataset_root, run.work(stage), run.report(stage), device)
-    return train(config, dataset_root, run.work(stage), run.report(stage), device)["checkpoint"]
+    return train(config, dataset_root, run.work("train"), run.report("train"), device)["checkpoint"]
 
 
 def evaluate_split(checkpoint, dataset_root, split, work_dir, report_dir, device, *, batch=8, protocol=None,

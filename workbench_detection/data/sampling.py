@@ -37,6 +37,7 @@ def expected_box_counts(dataset, weights):
 
 
 def make_train_sampler(dataset, original_weight=1.0, generator=None):
+    """A weighted random sampler over the training images (image_weights), drawing one epoch's worth with replacement."""
     weights = image_weights(dataset, original_weight)
     dataset.sample_weights = weights
     return WeightedRandomSampler(weights, num_samples=len(dataset), replacement=True, generator=generator)
