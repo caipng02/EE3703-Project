@@ -35,6 +35,8 @@ GUI (bonus challenge) source code, in its own repository:
   https://github.com/kemilii/EE3703-Group05-GUI
   Upload a photo, choose YOLO or Faster R-CNN, and see the boxes, class
   labels and confidences. Setup and run instructions are in its README.
+  The GUI uses final NMS IoU 0.30 for Faster R-CNN (the notebook's test
+  results use 0.50); see the report, Section 7.3.
 
 Dataset: 500 images at 640 x 640 (public and self-collected), split into
 358 train / 92 validation / 50 held-out original test images.
